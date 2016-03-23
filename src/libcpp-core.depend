@@ -1,0 +1,138 @@
+# depslib dependency file v1.0
+1458690018 source:/home/odroid/src/libcpp-core/src/libcpp-core.cpp
+
+1458691081 source:/home/odroid/src/libcpp-core/src/App.cpp
+	<sstream>
+	<fstream>
+	<unistd.h>
+	<cerrno>
+	<cstdlib>
+	<stdexcept>
+	<system_error>
+	<sys/stat.h>
+	<sys/types.h>
+	"Log.h"
+	"App.h"
+
+1458691085 /home/odroid/src/libcpp-core/src/Log.h
+	<ostream>
+	<iostream>
+	<sstream>
+	<iosfwd>
+	<cerrno>
+
+1458691085 /home/odroid/src/libcpp-core/src/App.h
+	<string>
+
+1458691081 source:/home/odroid/src/libcpp-core/src/FD.cpp
+	<cerrno>
+	<system_error>
+	<unistd.h>
+	"Log.h"
+	"FD.h"
+
+1458691085 /home/odroid/src/libcpp-core/src/FD.h
+	<unistd.h>
+
+1458691081 source:/home/odroid/src/libcpp-core/src/FDStream.cpp
+	"FDStream.h"
+
+1458691085 /home/odroid/src/libcpp-core/src/FDStream.h
+	<ext/stdio_filebuf.h>
+	<iostream>
+	<fstream>
+	<iosfwd>
+	<string>
+	<cstdio>
+
+1458691081 source:/home/odroid/src/libcpp-core/src/IOManip.cpp
+	"IOManip.h"
+
+1458691085 /home/odroid/src/libcpp-core/src/IOManip.h
+	<istream>
+	<ostream>
+	<iostream>
+	<iomanip>
+	<iosfwd>
+	<string>
+	<locale>
+
+1458691081 source:/home/odroid/src/libcpp-core/src/Log.cpp
+	<exception>
+	<system_error>
+	<string>
+	<cerrno>
+	"Log.h"
+
+1458691081 source:/home/odroid/src/libcpp-core/src/Pipe.cpp
+	"Pipe.h"
+
+1458691085 /home/odroid/src/libcpp-core/src/Pipe.h
+	<cerrno>
+	<system_error>
+	<istream>
+	<ostream>
+	<iostream>
+	<iosfwd>
+	"Log.h"
+	"FD.h"
+	"FDStream.h"
+
+1458691081 source:/home/odroid/src/libcpp-core/src/Process.cpp
+	<cstdlib>
+	<cerrno>
+	<system_error>
+	<fcntl.h>
+	"Log.h"
+	"Process.h"
+
+1458691085 /home/odroid/src/libcpp-core/src/Process.h
+	<unistd.h>
+	<signal.h>
+	<sys/types.h>
+	<sys/wait.h>
+	<vector>
+	<map>
+	<string>
+
+1458691081 source:/home/odroid/src/libcpp-core/src/Sock.cpp
+	<stdexcept>
+	<system_error>
+	<unistd.h>
+	<cerrno>
+	<ctime>
+	<cstring>
+	<netdb.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<sys/fcntl.h>
+	<sys/socket.h>
+	<sys/un.h>
+	<arpa/inet.h>
+	"Log.h"
+	"FD.h"
+	"FDStream.h"
+	"Sock.h"
+
+1458691085 /home/odroid/src/libcpp-core/src/Sock.h
+	<stdexcept>
+	<system_error>
+	<unistd.h>
+	<cerrno>
+	<cstring>
+	<istream>
+	<ostream>
+	<iostream>
+	<iosfwd>
+	<netdb.h>
+	<sys/stat.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<sys/fcntl.h>
+	<sys/socket.h>
+	<sys/un.h>
+	<arpa/inet.h>
+	"Log.h"
+	"FD.h"
+	"FDStream.h"
+
