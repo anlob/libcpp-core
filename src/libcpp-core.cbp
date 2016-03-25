@@ -38,6 +38,10 @@
 			<Add option="-fexceptions" />
 			<Add option="-fPIC" />
 		</Compiler>
+		<ExtraCommands>
+			<Add after='mv -vf $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).so $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).so.`cat version.h | grep -w BUILD | cut &quot;-d &quot; -f7 | cut &quot;-d;&quot; -f1`' />
+			<Add after='ln -s $(TARGET_OUTPUT_BASENAME).so.`cat version.h | grep -w BUILD | cut &quot;-d &quot; -f7 | cut &quot;-d;&quot; -f1` $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).so' />
+		</ExtraCommands>
 		<Unit filename="App.cpp" />
 		<Unit filename="App.h" />
 		<Unit filename="FD.cpp" />
