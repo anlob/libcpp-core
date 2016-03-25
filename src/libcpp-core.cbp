@@ -31,6 +31,9 @@
 					<Add option="-s" />
 				</Linker>
 			</Target>
+			<Environment>
+				<Variable name="TARGET_VERSION" value='`cat version.h | grep -w MAJOR | cut &quot;-d &quot; -f7 | cut &quot;-d;&quot; -f1`' />
+			</Environment>
 		</Build>
 		<Compiler>
 			<Add option="-std=c++11" />
@@ -38,9 +41,14 @@
 			<Add option="-fexceptions" />
 			<Add option="-fPIC" />
 		</Compiler>
+		<Linker>
+			<Add option="@$(TARGET_OBJECT_DIR)$(TARGET_OUTPUT_BASENAME).soname.ldopt" />
+		</Linker>
 		<ExtraCommands>
-			<Add after='mv -vf $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).so $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).so.`cat version.h | grep -w BUILD | cut &quot;-d &quot; -f7 | cut &quot;-d;&quot; -f1`' />
-			<Add after='ln -s $(TARGET_OUTPUT_BASENAME).so.`cat version.h | grep -w BUILD | cut &quot;-d &quot; -f7 | cut &quot;-d;&quot; -f1` $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).so' />
+			<Add before="mkdir -p $(TARGET_OBJECT_DIR)" />
+			<Add before="echo -Wl,-soname,$(TARGET_OUTPUT_BASENAME).so.$(TARGET_VERSION) &gt; $(TARGET_OBJECT_DIR)$(TARGET_OUTPUT_BASENAME).soname.ldopt" />
+			<Add after="mv -vf $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).so $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).so.$(TARGET_VERSION)" />
+			<Add after="ln -s $(TARGET_OUTPUT_BASENAME).so.$(TARGET_VERSION) $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).so" />
 		</ExtraCommands>
 		<Unit filename="App.cpp" />
 		<Unit filename="App.h" />
