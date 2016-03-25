@@ -1,2 +1,4 @@
 libcpp-core.layout
 libcpp-core.depend
+bin
+obj
