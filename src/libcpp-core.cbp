@@ -16,6 +16,7 @@
 				<Option createStaticLib="1" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-fPIC" />
 				</Compiler>
 				<Linker>
 					<Add option="@$(TARGET_OBJECT_DIR)$(TARGET_OUTPUT_BASENAME).soname.ldopt" />
@@ -40,6 +41,7 @@
 				<Option createStaticLib="1" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-fPIC" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -60,7 +62,6 @@
 			<Add option="-Wall" />
 			<Add option="-std=c++11" />
 			<Add option="-fexceptions" />
-			<Add option="-fPIC" />
 		</Compiler>
 		<Unit filename="App.cpp" />
 		<Unit filename="App.h" />
