@@ -207,7 +207,7 @@ std::basic_istream<_E, _Tr> &BasicSock<_E, _Tr>::shutrd()
   if (fds != nullptr) {
     struct stat st;
     if (::fstat(fds->fd(), &st) == 0) {
-      if (S_ISSOCK(st.st_mode) && (::shutdown(fds->fd(), SHUT_RD) == -1)) {
+      if (S_ISSOCK(st.st_mode) && (::shutdown(fds->fd(), SHUT_RD) == -1) && (errno != ENOTCONN)) {
         logerr << "shutdown(SHUT_RD) failed with " << errno << std::endl;
         eofr_.setstate(std::ios::failbit);
       }
