@@ -35,7 +35,7 @@ protected:
   }
 private:
   /**
-   * \brief flush buffer from pptr() up to epptr()
+   * \brief flush buffer from pbase() up to pptr()
    * \return 0 on success, -1 on failure
    */
   virtual int flush() { return -1; }
