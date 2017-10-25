@@ -55,6 +55,8 @@
 		<Unit filename="process.h" />
 		<Unit filename="sock.cpp" />
 		<Unit filename="sock.h" />
+		<Unit filename="streambuf.cpp" />
+		<Unit filename="streambuf.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />

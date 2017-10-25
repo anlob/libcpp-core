@@ -5,6 +5,7 @@
 #include "pipe.h"
 #include "process.h"
 #include "iomanip.h"
+#include "streambuf.h"
 
 using namespace std;
 
@@ -54,6 +55,13 @@ int main()
 #endif
 #if (_TEST_ALL == 1) || (_TEST_GRP_IOMNP == 1) || (_TEST_IOMNP_GETCINT == 1)
   test_iomnp_getcint();
+#endif
+
+#if (_TEST_ALL == 1) || (_TEST_GRP_STMBF == 1) || (_TEST_STMBF_INP == 1)
+  test_stmbf_inp();
+#endif
+#if (_TEST_ALL == 1) || (_TEST_GRP_STMBF == 1) || (_TEST_STMBF_OUT == 1)
+  test_stmbf_out();
 #endif
 
   return 0;

@@ -12,7 +12,7 @@
 #define _TEST_GRP_PIPE  0
 #define _TEST_GRP_PROC  0
 #define _TEST_GRP_IOMNP 0
-#define _TEST_GRP_JSON  0
+#define _TEST_GRP_STMBF 0
 
 // enable particular log test
 #define _TEST_LOG_ERR   0
@@ -39,6 +39,9 @@
 #define _TEST_IOMNP_PUTCSTR 0
 #define _TEST_IOMNP_GETCINT 0
 
+// enable particular streambuf test
+#define _TEST_STMBF_INP     0
+#define _TEST_STMBF_OUT     0
 
 
 #endif // CONF_H_INCLUDED
