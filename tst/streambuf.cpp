@@ -39,5 +39,31 @@ void test_stmbf_inp()
 #if (_TEST_ALL == 1) || (_TEST_GRP_STMBF == 1) || (_TEST_STMBF_OUT == 1)
 void test_stmbf_out()
 {
+  class MySink: public OStreamBuf
+  {
+    char data_[16];
+    size_t size_;
+
+    int flush()
+    {
+      for (char *q = pbase(); q < pptr();++q) {
+        if (size_ == sizeof(data_))
+          logexc << "unexpected overflow in primitive OStreamBuf data test" << endl;
+        data_[size_++] = *q;
+      }
+      return 0;
+    }
+
+  public:
+    MySink(): size_(0) {}
+    const char *data() const { return data_; }
+    size_t size() const { return size_; }
+  };
+
+  MySink *sink = new MySink;
+  ostream os(sink);
+  os << "hey" << endl;
+  if ((sink->size() != 4) || (memcmp(sink->data(), "hey\n", 4) != 0))
+    logexc << "primitive OStreamBuf data test failed" << endl;
 }
 #endif
