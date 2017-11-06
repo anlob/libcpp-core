@@ -77,6 +77,8 @@
 		<Unit filename="Pipe.h" />
 		<Unit filename="Process.cpp" />
 		<Unit filename="Process.h" />
+		<Unit filename="SSL.cpp" />
+		<Unit filename="SSL.h" />
 		<Unit filename="Sock.cpp" />
 		<Unit filename="Sock.h" />
 		<Unit filename="StreamBuf.cpp" />
