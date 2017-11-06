@@ -26,6 +26,7 @@ private:
   SSL *CreateH();
   unsigned opt_;
   SSL *ssl_;
+  SSL_CTX *ctx_;
   BIO *bio_;
   BIO *bio2_;
 };
