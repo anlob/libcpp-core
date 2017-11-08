@@ -2,3 +2,5 @@ libcpp-core.layout
 libcpp-core.depend
 bin
 obj
+doxygen/html
+doxygen/doxygen.log
