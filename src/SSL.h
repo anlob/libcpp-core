@@ -21,7 +21,12 @@ public:
 
   SSLH(int sockfd, unsigned opt = 0);
   SSLH(int pfd[2], unsigned opt = 0);
+  SSLH(const SSLH &from) = delete;
+  SSLH(SSLH &&from) { move(from); }
   virtual ~SSLH();
+
+  SSLH &operator=(const SSLH &from) = delete;
+  SSLH &operator=(SSLH &&from) { return move(from); }
 
   /**
    * last SSL_ERROR_XXX reported by ssl layer
@@ -32,13 +37,18 @@ public:
 
   bool connect();
   bool shutdown();
+  bool verify();
 
 private:
+  SSLH &move(SSLH &from);
   SSL *CreateH();
 
   bool conn_;     /**< connected flag */
-  bool vify_;     /**< connection verified flag */
+  bool vify_;     /**< connection verify flag */
+  long vifyrslt_; /**< keeps return value of SSL_get_verify_result() */
   int lasterr_;   /**< last SSL_ERROR_XXX reported by ssl layer */
+  std::string certname_;    /**< cert subject name */
+  std::string certissuer_;  /**< cert issuer */
   unsigned opt_;
   SSL *ssl_;
   SSL_CTX *ctx_;

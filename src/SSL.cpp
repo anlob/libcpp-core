@@ -57,6 +57,27 @@ SSLH::~SSLH()
     SSL_CTX_free(ctx_);
 }
 
+SSLH &SSLH::move(SSLH &from)
+{
+  conn_ = from.conn_;
+  vify_ = from.vify_;
+  vifyrslt_ = from.vifyrslt_;
+  lasterr_ = from.lasterr_;
+  certname_ = from.certname_;
+  certissuer_ = from.certissuer_;
+  opt_ = from.opt_;
+  ssl_ = from.ssl_;
+  from.ssl_ = nullptr;
+  ctx_ = from.ctx_;
+  from.ctx_ = nullptr;
+  bio_ = from.bio_;
+  from.bio_ = nullptr;
+  bio2_ = from.bio2_;
+  from.bio2_ = nullptr;
+
+  return *this;
+}
+
 SSL *SSLH::CreateH()
 {
   const SSL_METHOD *meth = SSLv23_client_method();
@@ -72,6 +93,13 @@ SSL *SSLH::CreateH()
   // exclude SSLV2
   ctxopt |= SSL_OP_NO_SSLv2;
 #endif
+  SSL_CTX_set_options(ctx_, ctxopt);
+
+  // TODO: be more flexible with various CA dirs.
+  // "/etc/ssl/certs" should work with openssl installation.
+  if (!SSL_CTX_load_verify_locations(ctx_, nullptr, "/etc/ssl/certs"))
+    logexc << "SSL_CTX_load_verify_locations(/etc/ssl/certs) failed" << endl;
+
   ssl_ = SSL_new(ctx_);
   if (ssl_ == nullptr)
     logexc << "SSL_new(ctx) failed unexpectedly" << endl;
@@ -93,7 +121,7 @@ bool SSLH::connect()
     logerr << "SSL_connect() failed with ssl error " << (lasterr_ = n) << endl;
     unsigned long e;
     while ((e = ERR_get_error()) != 0)
-    logerr << "ssl errstk: " << ERR_error_string(e, NULL) << endl;
+    logerr << "ssl errstk: " << ERR_error_string(e, nullptr) << endl;
 
     return false;
   }
@@ -114,8 +142,40 @@ bool SSLH::shutdown()
     logerr << "SSL_shutdown() failed with ssl error " << (lasterr_ = n) << endl;
     unsigned long e;
     while ((e = ERR_get_error()) != 0)
-    logerr << "ssl errstk: " << ERR_error_string(e, NULL) << endl;
+    logerr << "ssl errstk: " << ERR_error_string(e, nullptr) << endl;
 
     return false;
   }
- }
+}
+
+bool SSLH::verify()
+{
+  if (!conn_)
+    return false;
+
+  if (!vify_) {
+    certname_.clear();
+    certissuer_.clear();
+    X509 *cert = SSL_get_peer_certificate(ssl_);
+    if (cert != nullptr) {
+      char sbf[512];
+      X509_NAME *cname = X509_get_subject_name(cert);
+      if (cname != nullptr)
+        certname_ = X509_NAME_oneline(cname, sbf, (int) sizeof(sbf));
+      else
+        logerr << "X509_get_subject_name() returned NULL" << endl;
+      cname = X509_get_issuer_name(cert);
+      if (cname != nullptr)
+        certissuer_ = X509_NAME_oneline(cname, sbf, (int) sizeof(sbf));
+      else
+        logerr << "X509_get_issuer_name() returned NULL" << endl;
+      if ((vifyrslt_ = SSL_get_verify_result(ssl_)) != X509_V_OK)
+        logerr << "SSL_get_verify_result() returned " << vifyrslt_ << endl;
+    }
+    else
+      logerr << "SSL_get_peer_certificate() returned NULL" << endl;
+  }
+
+  vify_ = true;
+  return (vifyrslt_ == X509_V_OK) && !certname_.empty() && !certissuer_.empty();
+}

@@ -72,6 +72,9 @@ int main()
 #if (_TEST_ALL == 1) || (_TEST_GRP_SSL == 1) || (_TEST_SSL_SHUT == 1)
   test_ssl_shut();
 #endif
+#if (_TEST_ALL == 1) || (_TEST_GRP_SSL == 1) || (_TEST_SSL_VIFY == 1)
+  test_ssl_vify();
+#endif
 
   return 0;
 }
