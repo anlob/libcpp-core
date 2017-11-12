@@ -34,11 +34,12 @@
 			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-std=c++11" />
 			<Add option="-Wall" />
+			<Add option="-std=c++11" />
 			<Add option="-fexceptions" />
 		</Compiler>
 		<Linker>
+			<Add option="-lssl" />
 			<Add library="libcpp-core" />
 		</Linker>
 		<Unit filename="app.cpp" />
