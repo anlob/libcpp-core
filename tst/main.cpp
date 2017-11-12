@@ -6,6 +6,7 @@
 #include "process.h"
 #include "iomanip.h"
 #include "streambuf.h"
+#include "ssl.h"
 
 using namespace std;
 
@@ -62,6 +63,14 @@ int main()
 #endif
 #if (_TEST_ALL == 1) || (_TEST_GRP_STMBF == 1) || (_TEST_STMBF_OUT == 1)
   test_stmbf_out();
+#endif
+
+
+#if (_TEST_ALL == 1) || (_TEST_GRP_SSL == 1) || (_TEST_SSL_CONN == 1)
+  test_ssl_conn();
+#endif
+#if (_TEST_ALL == 1) || (_TEST_GRP_SSL == 1) || (_TEST_SSL_SHUT == 1)
+  test_ssl_shut();
 #endif
 
   return 0;
