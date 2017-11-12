@@ -18,7 +18,7 @@ SSLInit::SSLInit()
 }
 
 
-SSLH::SSLH(int sockfd, unsigned opt /* = 0*/): opt_(opt), ssl_(nullptr), ctx_(nullptr), bio_(nullptr), bio2_(nullptr)
+SSLH::SSLH(int sockfd, unsigned opt /* = 0*/): conn_(false), vify_(false), lasterr_(SSL_ERROR_NONE), opt_(opt), ssl_(nullptr), ctx_(nullptr), bio_(nullptr), bio2_(nullptr)
 {
   bio_ = BIO_new(BIO_s_socket());
   if (bio_ == nullptr)
@@ -28,7 +28,8 @@ SSLH::SSLH(int sockfd, unsigned opt /* = 0*/): opt_(opt), ssl_(nullptr), ctx_(nu
   BIO_set_fd(bio_, sockfd, !(opt & _FD_NOCLOSE));
   SSL_set_bio(ssl_, bio_, bio_);
 }
-SSLH::SSLH(int pfd[2], unsigned opt /* = 0*/): opt_(opt), ssl_(nullptr), ctx_(nullptr), bio_(nullptr), bio2_(nullptr)
+
+SSLH::SSLH(int pfd[2], unsigned opt /* = 0*/): conn_(false), vify_(false), lasterr_(SSL_ERROR_NONE), opt_(opt), ssl_(nullptr), ctx_(nullptr), bio_(nullptr), bio2_(nullptr)
 {
   bio_ = BIO_new(BIO_s_fd());
   bio2_ = BIO_new(BIO_s_fd());
@@ -73,3 +74,37 @@ SSL *SSLH::CreateH()
     logexc << "SSL_new(ctx) failed unexpectedly" << endl;
   return ssl_;
 }
+
+bool SSLH::connect()
+{
+  if (conn_)
+    return true;
+
+  while (1) {
+    int n = SSL_connect(ssl_);
+    if (n == 1)
+      return conn_ = true;
+    if (((n = SSL_get_error(ssl_, n)) == SSL_ERROR_WANT_READ) || (n == SSL_ERROR_WANT_WRITE))
+      continue;
+    lasterr_ = n;
+    // TODO: error logging
+    return false;
+  }
+}
+
+bool SSLH::shutdown()
+{
+  if (!conn_)
+    return true;
+
+  while (1) {
+    int n = SSL_shutdown(ssl_);
+    if (n == 1)
+      return !(conn_ = vify_ = false);
+    if (((n = SSL_get_error(ssl_, n)) == SSL_ERROR_WANT_READ) || (n == SSL_ERROR_WANT_WRITE))
+      continue;
+    lasterr_ = n;
+    // TODO: error logging
+    return false;
+  }
+ }

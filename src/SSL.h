@@ -21,9 +21,24 @@ public:
 
   SSLH(int sockfd, unsigned opt = 0);
   SSLH(int pfd[2], unsigned opt = 0);
-  ~SSLH();
+  virtual ~SSLH();
+
+  /**
+   * last SSL_ERROR_XXX reported by ssl layer
+   *
+   * \return int
+   */
+  int lasterr() const { return lasterr_; }
+
+  bool connect();
+  bool shutdown();
+
 private:
   SSL *CreateH();
+
+  bool conn_;     /**< connected flag */
+  bool vify_;     /**< connection verified flag */
+  int lasterr_;   /**< last SSL_ERROR_XXX reported by ssl layer */
   unsigned opt_;
   SSL *ssl_;
   SSL_CTX *ctx_;
