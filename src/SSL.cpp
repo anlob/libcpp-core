@@ -27,6 +27,7 @@ SSLH::SSLH(int sockfd, unsigned opt /* = 0*/): conn_(false), vify_(false), laste
   CreateH();
   BIO_set_fd(bio_, sockfd, !(opt & _FD_NOCLOSE));
   SSL_set_bio(ssl_, bio_, bio_);
+  BIO_up_ref(bio_);
 }
 
 SSLH::SSLH(int pfd[2], unsigned opt /* = 0*/): conn_(false), vify_(false), lasterr_(SSL_ERROR_NONE), opt_(opt), ssl_(nullptr), ctx_(nullptr), bio_(nullptr), bio2_(nullptr)
@@ -40,18 +41,20 @@ SSLH::SSLH(int pfd[2], unsigned opt /* = 0*/): conn_(false), vify_(false), laste
   BIO_set_fd(bio_, pfd[0], !(opt & _FD_NOCLOSE));
   BIO_set_fd(bio2_, pfd[1], !(opt & _FD_NOCLOSE));
   SSL_set_bio(ssl_, bio_, bio2_);
+  BIO_up_ref(bio_);
+  BIO_up_ref(bio2_);
 }
 
 SSLH::~SSLH()
 {
   if (ssl_ != nullptr)
     SSL_free(ssl_);
-  if (ctx_ != nullptr)
-    SSL_CTX_free(ctx_);
   if (bio_ != nullptr)
     BIO_free(bio_);
   if (bio2_ != nullptr)
     BIO_free(bio2_);
+  if (ctx_ != nullptr)
+    SSL_CTX_free(ctx_);
 }
 
 SSL *SSLH::CreateH()
@@ -86,8 +89,12 @@ bool SSLH::connect()
       return conn_ = true;
     if (((n = SSL_get_error(ssl_, n)) == SSL_ERROR_WANT_READ) || (n == SSL_ERROR_WANT_WRITE))
       continue;
-    lasterr_ = n;
-    // TODO: error logging
+
+    logerr << "SSL_connect() failed with ssl error " << (lasterr_ = n) << endl;
+    unsigned long e;
+    while ((e = ERR_get_error()) != 0)
+    logerr << "ssl errstk: " << ERR_error_string(e, NULL) << endl;
+
     return false;
   }
 }
@@ -103,8 +110,12 @@ bool SSLH::shutdown()
       return !(conn_ = vify_ = false);
     if (((n = SSL_get_error(ssl_, n)) == SSL_ERROR_WANT_READ) || (n == SSL_ERROR_WANT_WRITE))
       continue;
-    lasterr_ = n;
-    // TODO: error logging
+
+    logerr << "SSL_shutdown() failed with ssl error " << (lasterr_ = n) << endl;
+    unsigned long e;
+    while ((e = ERR_get_error()) != 0)
+    logerr << "ssl errstk: " << ERR_error_string(e, NULL) << endl;
+
     return false;
   }
  }
