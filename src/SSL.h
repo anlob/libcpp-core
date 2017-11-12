@@ -28,12 +28,8 @@ public:
   SSLH &operator=(const SSLH &from) = delete;
   SSLH &operator=(SSLH &&from) { return move(from); }
 
-  /**
-   * last SSL_ERROR_XXX reported by ssl layer
-   *
-   * \return int
-   */
   int lasterr() const { return lasterr_; }
+  int lasterr(int sslerr);
 
   bool connect();
   bool shutdown();

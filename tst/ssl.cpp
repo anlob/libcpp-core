@@ -28,6 +28,9 @@ void test_ssl_conn()
 #if (_TEST_ALL == 1) || (_TEST_GRP_SSL == 1) || (_TEST_SSL_SHUT == 1)
 void test_ssl_shut()
 {
+  SSLH sslh = do_ssl_conn();
+  if (!sslh.shutdown())
+    logexc << "ssl shutdown test failed" << endl;
 }
 #endif
 
@@ -37,5 +40,16 @@ void test_ssl_vify()
   SSLH sslh = do_ssl_conn();
   if (!sslh.verify())
     logexc << "ssl verify test failed" << endl;
+}
+#endif
+
+#if (_TEST_ALL == 1) || (_TEST_GRP_SSL == 1) || (_TEST_SSL_RECONN == 1)
+void test_ssl_reconn()
+{
+  SSLH sslh = do_ssl_conn();
+  if (!sslh.shutdown())
+    logexc << "ssl shutdown failed in reconnect test" << endl;
+  if (!sslh.connect())
+    logexc << "ssl reconnect test failed" << endl;
 }
 #endif

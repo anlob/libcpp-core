@@ -78,33 +78,15 @@ SSLH &SSLH::move(SSLH &from)
   return *this;
 }
 
-SSL *SSLH::CreateH()
+
+int SSLH::lasterr(int sslerr)
 {
-  const SSL_METHOD *meth = SSLv23_client_method();
-  if (meth == nullptr)
-    logexc << "SSLv23_client_method() failed unexpectedly" << endl;
-  ctx_ = SSL_CTX_new(meth);
-  if (ctx_ == nullptr)
-    logexc << "SSL_CTX_new(method) failed unexpectedly" << endl;
-  unsigned long ctxopt = SSL_CTX_get_options(ctx_);
-  // use all bug workarounds of category harmless
-  ctxopt |= SSL_OP_ALL;
-#ifdef SSL_OP_NO_SSLv2
-  // exclude SSLV2
-  ctxopt |= SSL_OP_NO_SSLv2;
-#endif
-  SSL_CTX_set_options(ctx_, ctxopt);
-
-  // TODO: be more flexible with various CA dirs.
-  // "/etc/ssl/certs" should work with openssl installation.
-  if (!SSL_CTX_load_verify_locations(ctx_, nullptr, "/etc/ssl/certs"))
-    logexc << "SSL_CTX_load_verify_locations(/etc/ssl/certs) failed" << endl;
-
-  ssl_ = SSL_new(ctx_);
-  if (ssl_ == nullptr)
-    logexc << "SSL_new(ctx) failed unexpectedly" << endl;
-  return ssl_;
+  int e = lasterr_;
+  if (sslerr >= 0)
+    lasterr_ = sslerr;
+  return e;
 }
+
 
 bool SSLH::connect()
 {
@@ -121,7 +103,7 @@ bool SSLH::connect()
     logerr << "SSL_connect() failed with ssl error " << (lasterr_ = n) << endl;
     unsigned long e;
     while ((e = ERR_get_error()) != 0)
-    logerr << "ssl errstk: " << ERR_error_string(e, nullptr) << endl;
+      logerr << "ssl errstk: " << ERR_error_string(e, nullptr) << endl;
 
     return false;
   }
@@ -132,18 +114,30 @@ bool SSLH::shutdown()
   if (!conn_)
     return true;
 
+  bool wshut = false;
   while (1) {
     int n = SSL_shutdown(ssl_);
     if (n == 1)
       return !(conn_ = vify_ = false);
+    if (n == 0) {
+      wshut = true;
+      continue;
+    }
     if (((n = SSL_get_error(ssl_, n)) == SSL_ERROR_WANT_READ) || (n == SSL_ERROR_WANT_WRITE))
       continue;
+
+    if (wshut) {
+      logwrn << "graceful SSL_shutdown() failed with ssl error " << (lasterr_ = n) << endl;
+      unsigned long e;
+      while ((e = ERR_get_error()) != 0)
+        logwrn << "ssl errstk: " << ERR_error_string(e, nullptr) << endl;
+      return !(conn_ = vify_ = false);
+    }
 
     logerr << "SSL_shutdown() failed with ssl error " << (lasterr_ = n) << endl;
     unsigned long e;
     while ((e = ERR_get_error()) != 0)
-    logerr << "ssl errstk: " << ERR_error_string(e, nullptr) << endl;
-
+      logerr << "ssl errstk: " << ERR_error_string(e, nullptr) << endl;
     return false;
   }
 }
@@ -179,3 +173,33 @@ bool SSLH::verify()
   vify_ = true;
   return (vifyrslt_ == X509_V_OK) && !certname_.empty() && !certissuer_.empty();
 }
+
+
+SSL *SSLH::CreateH()
+{
+  const SSL_METHOD *meth = SSLv23_client_method();
+  if (meth == nullptr)
+    logexc << "SSLv23_client_method() failed unexpectedly" << endl;
+  ctx_ = SSL_CTX_new(meth);
+  if (ctx_ == nullptr)
+    logexc << "SSL_CTX_new(method) failed unexpectedly" << endl;
+  unsigned long ctxopt = SSL_CTX_get_options(ctx_);
+  // use all bug workarounds of category harmless
+  ctxopt |= SSL_OP_ALL;
+#ifdef SSL_OP_NO_SSLv2
+  // exclude SSLV2
+  ctxopt |= SSL_OP_NO_SSLv2;
+#endif
+  SSL_CTX_set_options(ctx_, ctxopt);
+
+  // TODO: be more flexible with various CA dirs.
+  // "/etc/ssl/certs" should work with openssl installation.
+  if (!SSL_CTX_load_verify_locations(ctx_, nullptr, "/etc/ssl/certs"))
+    logexc << "SSL_CTX_load_verify_locations(/etc/ssl/certs) failed" << endl;
+
+  ssl_ = SSL_new(ctx_);
+  if (ssl_ == nullptr)
+    logexc << "SSL_new(ctx) failed unexpectedly" << endl;
+  return ssl_;
+}
+

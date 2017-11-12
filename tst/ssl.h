@@ -13,6 +13,9 @@ void test_ssl_shut();
 #if (_TEST_ALL == 1) || (_TEST_GRP_SSL == 1) || (_TEST_SSL_VIFY == 1)
 void test_ssl_vify();
 #endif
+#if (_TEST_ALL == 1) || (_TEST_GRP_SSL == 1) || (_TEST_SSL_RECONN == 1)
+void test_ssl_reconn();
+#endif
 
 
 #endif // TEST_SSL_H_INCLUDED
