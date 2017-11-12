@@ -17,6 +17,14 @@ void FD::Close()
   fd_ = -1;
 }
 
+FD &FD::operator=(const FD &from)
+{
+  Close();
+  if ((from.fd_ != -1) && ((fd_ = ::dup(from.fd_)) == -1))
+    logsxc << "dup(from.fd_) failed" << std::endl;
+  return *this;
+}
+
 PFD::PFD()
 {
   int pfd[2];
