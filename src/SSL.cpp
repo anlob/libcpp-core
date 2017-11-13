@@ -174,6 +174,50 @@ bool SSLH::verify()
   return (vifyrslt_ == X509_V_OK) && !certname_.empty() && !certissuer_.empty();
 }
 
+streamsize SSLH::read(void *buf, size_t bufsz)
+{
+  while (1) {
+    int n = SSL_read(ssl_, buf, bufsz);
+    if (n > 0)
+      return n;
+
+    switch(n = SSL_get_error(ssl_, n)) {
+    case SSL_ERROR_WANT_READ:
+    case SSL_ERROR_WANT_WRITE:
+      continue;
+    case SSL_ERROR_ZERO_RETURN:
+      return 0; // EOF
+    }
+
+    logerr << "SSL_read() failed with ssl error " << (lasterr_ = n) << endl;
+    unsigned long e;
+    while ((e = ERR_get_error()) != 0)
+      logerr << "ssl errstk: " << ERR_error_string(e, nullptr) << endl;
+    return -1;
+  }
+}
+
+streamsize SSLH::write(const void *buf, size_t bufsz)
+{
+  while (1) {
+    int n = SSL_write(ssl_, buf, bufsz);
+    if (n >= 0)
+      return n;
+
+    switch(n = SSL_get_error(ssl_, n)) {
+    case SSL_ERROR_WANT_READ:
+    case SSL_ERROR_WANT_WRITE:
+      continue;
+    }
+
+    logerr << "SSL_write() failed with ssl error " << (lasterr_ = n) << endl;
+    unsigned long e;
+    while ((e = ERR_get_error()) != 0)
+      logerr << "ssl errstk: " << ERR_error_string(e, nullptr) << endl;
+    return -1;
+  }
+}
+
 
 SSL *SSLH::CreateH()
 {
@@ -202,4 +246,3 @@ SSL *SSLH::CreateH()
     logexc << "SSL_new(ctx) failed unexpectedly" << endl;
   return ssl_;
 }
-

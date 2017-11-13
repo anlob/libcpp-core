@@ -30,10 +30,14 @@ public:
 
   int lasterr() const { return lasterr_; }
   int lasterr(int sslerr);
+  const std::string &certname() const { return certname_; }
+  const std::string &certissuer() const { return certissuer_; }
 
   bool connect();
   bool shutdown();
   bool verify();
+  std::streamsize read(void *buf, std::size_t bufsz);
+  std::streamsize write(const void *buf, std::size_t bufsz);
 
 private:
   SSLH &move(SSLH &from);

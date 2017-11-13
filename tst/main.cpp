@@ -78,6 +78,9 @@ int main()
 #if (_TEST_ALL == 1) || (_TEST_GRP_SSL == 1) || (_TEST_SSL_RECONN == 1)
   test_ssl_reconn();
 #endif
+#if (_TEST_ALL == 1) || (_TEST_GRP_SSL == 1) || (_TEST_SSL_HTTPREQ == 1)
+  test_ssl_httpreq();
+#endif
 
   return 0;
 }
