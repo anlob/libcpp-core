@@ -52,6 +52,7 @@ public:
   template<typename _T> std::basic_istream<_E, _Tr> &operator>>(_T _v) { return in() >> _v; }
   template<typename _T> std::basic_ostream<_E, _Tr> &operator<<(_T _v) { return out() << _v; }
 
+  std::streamsize readsome(_E *_s, std::streamsize _n) { return in().readsome(_s, _n); }
   std::basic_istream<_E, _Tr> &read(_E *_s, std::streamsize _n) { return in().read(_s, _n); }
   std::basic_ostream<_E, _Tr> &write(const _E *_s, std::streamsize _n) { return out().write(_s, _n); }
 
