@@ -36,9 +36,9 @@ protected:
 private:
   /**
    * \brief flush buffer from pbase() up to pptr()
-   * \return 0 on success, -1 on failure
+   * \return >= 0 on success, -1 on failure
    */
-  virtual int flush() { return -1; }
+  virtual std::streamsize flush() { return -1; }
   std::vector<_E> buf_;
 };
 
@@ -67,7 +67,7 @@ private:
    * \param bufsz max number of bytes to be read
    * \return number of bytes read, -1 on failure, 0 indicates EOF
    */
-  virtual int fill(std::size_t bufsz) { return 0; }
+  virtual std::streamsize fill(std::size_t bufsz) { return 0; }
   std::vector<_E> buf_;
   std::size_t bfsz_;
   std::size_t pbsz_;

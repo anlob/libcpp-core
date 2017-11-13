@@ -15,7 +15,7 @@ void test_stmbf_inp()
   {
     bool filled_;
 
-    int fill(size_t bufsz)
+    streamsize fill(size_t bufsz)
     {
       if (!filled_)
         return filled_ = true, strlen(strcpy(IStreamBuf::gptr(), "hey")) + 1;
@@ -44,7 +44,7 @@ void test_stmbf_out()
     char data_[16];
     size_t size_;
 
-    int flush()
+    streamsize flush()
     {
       for (char *q = pbase(); q < pptr();++q) {
         if (size_ == sizeof(data_))
