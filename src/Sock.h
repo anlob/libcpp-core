@@ -37,6 +37,7 @@ class BasicSock: public SockFN
 public:
   BasicSock(std::basic_istream<_E, _Tr> *in, std::basic_ostream<_E, _Tr> *out): eofr_(nullptr), eofw_(nullptr), in_((in != nullptr) ? in : &eofr_), out_((out != nullptr) ? out : &eofw_) {}
   BasicSock(int sockfd);
+  BasicSock(FD &&sfd): BasicSock((int) sfd) { sfd.Detach(); }
   BasicSock(struct sockaddr *addr);
   BasicSock(const char *addr);
   virtual ~BasicSock();
