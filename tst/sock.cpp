@@ -15,9 +15,14 @@ using namespace std;
 #if (_TEST_ALL == 1) || (_TEST_GRP_SOCK == 1) || (_TEST_SOCK_HTTPREQ == 1)
 void test_sock_httpreq()
 {
+#if 0
+  Sock sock(SockFN::Connect("web.de:80"));  // works too
+#else
   Sock sock("web.de:80");
+#endif
 
-  sock << "GET / HTTP/1.0\nHost: web.de\n" << endl;
+  sock << "GET / HTTP/1.0\r\nHost: web.de\r\n\r\n";
+  sock.flush();
   sock.shutwr();
 
   string s;

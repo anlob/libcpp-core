@@ -60,7 +60,7 @@ void test_ssl_reconn()
 void test_ssl_httpreq()
 {
   SSLH sslh = do_ssl_conn();
-  const char *rq = "GET / HTTP/1.1\nHost: web.de\nConnection: close\n\n";
+  const char *rq = "GET / HTTP/1.1\r\nHost: web.de\r\nConnection: close\r\n\r\n";
   if (sslh.write(rq, strlen(rq)) < 0)
     logexc << "ssl write failed in http request test" << endl;
   char buf[512];
