@@ -4,6 +4,10 @@
 #include <openssl/ssl.h>
 #include <openssl/bio.h>
 #include <openssl/err.h>
+#include <istream>
+#include <ostream>
+#include "StreamBuf.h"
+#include "Sock.h"
 
 
 class SSLInit
@@ -55,6 +59,21 @@ private:
   BIO *bio_;
   BIO *bio2_;
 };
+
+
+template<typename _E, typename _Tr = std::char_traits<_E> >
+class BasicSSLSock: protected SSLH, private BasicIStreamBuf<_E, _Tr>, private BasicOStreamBuf<_E, _Tr>, private std::basic_istream<_E, _Tr>, private std::basic_ostream<_E, _Tr>, public BasicSock<_E, _Tr>
+{
+public:
+  BasicSSLSock(int sockfd): SSLH(sockfd), std::basic_istream<_E, _Tr>((BasicIStreamBuf<_E, _Tr> *) this), std::basic_ostream<_E, _Tr>((BasicOStreamBuf<_E, _Tr> *) this), BasicSock<_E, _Tr>((std::basic_istream<_E, _Tr> *) this, (std::basic_ostream<_E, _Tr> *) this) { connect(); }
+  BasicSSLSock(FD &&sfd): BasicSSLSock((int) sfd) { sfd.Detach(); }
+  BasicSSLSock(struct sockaddr *addr): BasicSSLSock(SockFN::Connect(addr)) {}
+  BasicSSLSock(const char *addr): BasicSSLSock(SockFN::Connect(addr)) {}
+  virtual ~BasicSSLSock() {}
+};
+
+typedef BasicSSLSock<char> SSLSock;
+typedef BasicSSLSock<wchar_t> SSLWSock;
 
 
 #endif // SSL_H_INCLUDED
