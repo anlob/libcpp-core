@@ -83,3 +83,16 @@ void test_ssl_httpreq()
     logexc << "bad HTTPS response" << endl;
 }
 #endif
+
+#if (_TEST_ALL == 1) || (_TEST_GRP_SSL == 1) || (_TEST_SSL_SOCK == 1)
+void test_ssl_sock()
+{
+  SSLSock sock("web.de:443");
+  sock << "GET / HTTP/1.0\r\nHost: web.de\r\n\r\n";
+  sock.flush();
+
+  string s;
+  if (!getline(sock.in(), s) || (strncmp(s.c_str(), "HTTP/", 5) != 0))
+    logexc << "bad HTTP response" << endl;
+}
+#endif

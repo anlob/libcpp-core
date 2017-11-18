@@ -50,6 +50,7 @@
 #define _TEST_SSL_VIFY      0
 #define _TEST_SSL_RECONN    0
 #define _TEST_SSL_HTTPREQ   0
+#define _TEST_SSL_SOCK      0
 
 
 #endif // CONF_H_INCLUDED

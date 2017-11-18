@@ -19,6 +19,9 @@ void test_ssl_reconn();
 #if (_TEST_ALL == 1) || (_TEST_GRP_SSL == 1) || (_TEST_SSL_HTTPREQ == 1)
 void test_ssl_httpreq();
 #endif
+#if (_TEST_ALL == 1) || (_TEST_GRP_SSL == 1) || (_TEST_SSL_SOCK == 1)
+void test_ssl_sock();
+#endif
 
 
 #endif // TEST_SSL_H_INCLUDED

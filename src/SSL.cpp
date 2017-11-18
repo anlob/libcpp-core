@@ -11,6 +11,7 @@ SSLInit::SSLInit()
   if (init_)
     return;
 
+  init_ = true;
   SSL_library_init();
   ERR_load_BIO_strings();
   SSL_load_error_strings();

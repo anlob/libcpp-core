@@ -18,6 +18,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <arpa/inet.h>
+#include <memory>
 #include "Log.h"
 #include "FD.h"
 #include "FDStream.h"
@@ -32,10 +33,32 @@ public:
 };
 
 template<typename _E, typename _Tr = std::char_traits<_E> >
-class BasicSock: public SockFN
+class BasicSock:
+  public SockFN,
+  private std::unique_ptr<std::basic_istream<_E, _Tr> >,
+  private std::unique_ptr<std::basic_ostream<_E, _Tr> >
 {
 public:
-  BasicSock(std::basic_istream<_E, _Tr> *in, std::basic_ostream<_E, _Tr> *out): eofr_(nullptr), eofw_(nullptr), in_((in != nullptr) ? in : &eofr_), out_((out != nullptr) ? out : &eofw_) {}
+  BasicSock():
+    eofr_(nullptr), eofw_(nullptr),
+    in_(&eofr_), out_(&eofw_) {}
+  BasicSock(std::basic_streambuf<_E, _Tr> *isb, std::basic_streambuf<_E, _Tr> *osb):
+    std::unique_ptr<std::basic_istream<_E, _Tr> >((isb != nullptr) ? new std::basic_istream<_E, _Tr>(nullptr) : nullptr),
+    std::unique_ptr<std::basic_ostream<_E, _Tr> >((osb != nullptr) ? new std::basic_ostream<_E, _Tr>(nullptr) : nullptr),
+    eofr_(nullptr), eofw_(nullptr),
+    in_((isb != nullptr) ? std::unique_ptr<std::basic_istream<_E, _Tr> >::get() : &eofr_),
+    out_((osb != nullptr) ? std::unique_ptr<std::basic_ostream<_E, _Tr> >::get() : &eofw_)
+  {
+    if (isb != nullptr)
+      in_->rdbuf(isb);
+    if (osb != nullptr)
+      out_->rdbuf(osb);
+  }
+  BasicSock(std::basic_istream<_E, _Tr> *in, std::basic_ostream<_E, _Tr> *out):
+    std::unique_ptr<std::basic_istream<_E, _Tr> >(in),
+    std::unique_ptr<std::basic_ostream<_E, _Tr> >(out),
+    eofr_(nullptr), eofw_(nullptr),
+    in_((in != nullptr) ? in : &eofr_), out_((out != nullptr) ? out : &eofw_) {}
   BasicSock(int sockfd);
   BasicSock(FD &&sfd): BasicSock((int) sfd) { sfd.Detach(); }
   BasicSock(struct sockaddr *addr);
@@ -141,7 +164,7 @@ std::basic_istream<_E, _Tr> &BasicSock<_E, _Tr>::shutrd()
       eofr_.setstate(std::ios::failbit);
     }
   }
-  delete in_;
+  std::unique_ptr<std::basic_istream<_E, _Tr> >::reset();
   return *(in_ = &eofr_);
 }
 
@@ -164,7 +187,7 @@ std::basic_ostream<_E, _Tr> &BasicSock<_E, _Tr>::shutwr()
       eofw_.setstate(std::ios::failbit);
     }
   }
-  delete out_;
+  std::unique_ptr<std::basic_ostream<_E, _Tr> >::reset();
   return *(out_ = &eofw_);
 }
 

@@ -34,7 +34,7 @@ void test_sock_httpreq()
 #if (_TEST_ALL == 1) || (_TEST_GRP_SOCK == 1) || (_TEST_SOCK_SHUT == 1)
 void test_sock_shut()
 {
-  Sock sock(nullptr, nullptr);
+  Sock sock;
   char c;
   sock.get(c);
   sock.put(c);
