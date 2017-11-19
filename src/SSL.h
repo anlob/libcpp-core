@@ -38,11 +38,11 @@ public:
   const std::string &certname() const { return certname_; }
   const std::string &certissuer() const { return certissuer_; }
 
-  bool rdshut();
-  bool wrshut();
+  bool rdshut() const;
+  bool wrshut() const;
 
   bool connect();
-  bool connected();
+  bool connected() const;
   bool verify();
   std::streamsize read(void *buf, std::size_t bufsz);
   std::streamsize write(const void *buf, std::size_t bufsz);
@@ -69,7 +69,7 @@ private:
 
 template<typename _E, typename _Tr = std::char_traits<_E> >
 class BasicSSLSock:
-  protected SSLH,
+  public SSLH,
   private std::unique_ptr<BasicIStreamBuf<_E, _Tr> >,
   private std::unique_ptr<BasicOStreamBuf<_E, _Tr> >,
   public BasicSock<_E, _Tr>
@@ -106,6 +106,9 @@ public:
   BasicSSLSock(const char *addr): BasicSSLSock(SockFN::Connect(addr)) {}
   virtual ~BasicSSLSock() {}
 
+  bool rdshut() { return SSLH::rdshut(); }
+  bool wrshut() { return SSLH::wrshut(); }
+
   std::basic_istream<_E, _Tr> &in() { return BasicSock<_E, _Tr>::in(); }
   std::basic_ostream<_E, _Tr> &out() { return BasicSock<_E, _Tr>::out(); }
   operator std::basic_istream<_E, _Tr> &() { return in(); }
@@ -123,6 +126,21 @@ public:
   std::basic_istream<_E, _Tr> &putback(_E _c) { return in().putback(_c); }
   std::basic_ostream<_E, _Tr> &put(_E _c) { return out().put(_c); }
   std::basic_ostream<_E, _Tr> &flush() { return out().flush(); }
+
+  std::basic_istream<_E, _Tr> &shutrd()
+  {
+    std::basic_istream<_E, _Tr> &is = in();
+    if (SSLH::shutrd())
+      is.setstate(std::ios::failbit);
+    return is;
+  }
+  std::basic_ostream<_E, _Tr> &shutwr()
+  {
+    std::basic_ostream<_E, _Tr> &os = out();
+    if (SSLH::shutwr())
+      os.setstate(std::ios::failbit);
+    return os;
+  }
 };
 
 typedef BasicSSLSock<char> SSLSock;

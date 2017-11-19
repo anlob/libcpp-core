@@ -90,12 +90,12 @@ int SSLH::lasterr(int sslerr)
 }
 
 
-bool SSLH::rdshut()
+bool SSLH::rdshut() const
 {
   return ((::SSL_get_shutdown(ssl_) & SSL_RECEIVED_SHUTDOWN) != 0);
 }
 
-bool SSLH::wrshut()
+bool SSLH::wrshut() const
 {
   return ((::SSL_get_shutdown(ssl_) & SSL_SENT_SHUTDOWN) != 0);
 }
@@ -125,7 +125,7 @@ bool SSLH::connect()
   }
 }
 
-bool SSLH::connected()
+bool SSLH::connected() const
 {
   return ((::SSL_get_shutdown(ssl_) & (SSL_SENT_SHUTDOWN | SSL_RECEIVED_SHUTDOWN)) != (SSL_SENT_SHUTDOWN | SSL_RECEIVED_SHUTDOWN));
 }
