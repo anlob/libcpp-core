@@ -19,7 +19,7 @@ SSLInit::SSLInit()
 }
 
 
-SSLH::SSLH(int sockfd, unsigned opt /* = 0*/): conn_(false), vify_(false), lasterr_(SSL_ERROR_NONE), opt_(opt), ssl_(nullptr), ctx_(nullptr), bio_(nullptr), bio2_(nullptr)
+SSLH::SSLH(int sockfd, unsigned opt /* = 0*/): vify_(false), lasterr_(SSL_ERROR_NONE), opt_(opt), ssl_(nullptr), ctx_(nullptr), bio_(nullptr), bio2_(nullptr)
 {
   bio_ = BIO_new(BIO_s_socket());
   if (bio_ == nullptr)
@@ -29,9 +29,10 @@ SSLH::SSLH(int sockfd, unsigned opt /* = 0*/): conn_(false), vify_(false), laste
   BIO_set_fd(bio_, sockfd, !(opt & _FD_NOCLOSE));
   SSL_set_bio(ssl_, bio_, bio_);
   BIO_up_ref(bio_);
+  ::SSL_set_shutdown(ssl_, SSL_SENT_SHUTDOWN | SSL_RECEIVED_SHUTDOWN);
 }
 
-SSLH::SSLH(int pfd[2], unsigned opt /* = 0*/): conn_(false), vify_(false), lasterr_(SSL_ERROR_NONE), opt_(opt), ssl_(nullptr), ctx_(nullptr), bio_(nullptr), bio2_(nullptr)
+SSLH::SSLH(int pfd[2], unsigned opt /* = 0*/): vify_(false), lasterr_(SSL_ERROR_NONE), opt_(opt), ssl_(nullptr), ctx_(nullptr), bio_(nullptr), bio2_(nullptr)
 {
   bio_ = BIO_new(BIO_s_fd());
   bio2_ = BIO_new(BIO_s_fd());
@@ -44,6 +45,7 @@ SSLH::SSLH(int pfd[2], unsigned opt /* = 0*/): conn_(false), vify_(false), laste
   SSL_set_bio(ssl_, bio_, bio2_);
   BIO_up_ref(bio_);
   BIO_up_ref(bio2_);
+  ::SSL_set_shutdown(ssl_, SSL_SENT_SHUTDOWN | SSL_RECEIVED_SHUTDOWN);
 }
 
 SSLH::~SSLH()
@@ -60,7 +62,6 @@ SSLH::~SSLH()
 
 SSLH &SSLH::move(SSLH &from)
 {
-  conn_ = from.conn_;
   vify_ = from.vify_;
   vifyrslt_ = from.vifyrslt_;
   lasterr_ = from.lasterr_;
@@ -89,15 +90,28 @@ int SSLH::lasterr(int sslerr)
 }
 
 
+bool SSLH::rdshut()
+{
+  return ((::SSL_get_shutdown(ssl_) & SSL_RECEIVED_SHUTDOWN) != 0);
+}
+
+bool SSLH::wrshut()
+{
+  return ((::SSL_get_shutdown(ssl_) & SSL_SENT_SHUTDOWN) != 0);
+}
+
+
 bool SSLH::connect()
 {
-  if (conn_)
+  if (connected())
     return true;
 
   while (1) {
     int n = SSL_connect(ssl_);
-    if (n == 1)
-      return conn_ = true;
+    if (n == 1) {
+      vify_ = false;
+      return true;
+    }
     if (((n = SSL_get_error(ssl_, n)) == SSL_ERROR_WANT_READ) || (n == SSL_ERROR_WANT_WRITE))
       continue;
 
@@ -106,46 +120,19 @@ bool SSLH::connect()
     while ((e = ERR_get_error()) != 0)
       logerr << "ssl errstk: " << ERR_error_string(e, nullptr) << endl;
 
+    ::SSL_set_shutdown(ssl_, SSL_SENT_SHUTDOWN | SSL_RECEIVED_SHUTDOWN);
     return false;
   }
 }
 
-bool SSLH::shutdown()
+bool SSLH::connected()
 {
-  if (!conn_)
-    return true;
-
-  bool wshut = false;
-  while (1) {
-    int n = SSL_shutdown(ssl_);
-    if (n == 1)
-      return !(conn_ = vify_ = false);
-    if (n == 0) {
-      wshut = true;
-      continue;
-    }
-    if (((n = SSL_get_error(ssl_, n)) == SSL_ERROR_WANT_READ) || (n == SSL_ERROR_WANT_WRITE))
-      continue;
-
-    if (wshut) {
-      logwrn << "graceful SSL_shutdown() failed with ssl error " << (lasterr_ = n) << endl;
-      unsigned long e;
-      while ((e = ERR_get_error()) != 0)
-        logwrn << "ssl errstk: " << ERR_error_string(e, nullptr) << endl;
-      return !(conn_ = vify_ = false);
-    }
-
-    logerr << "SSL_shutdown() failed with ssl error " << (lasterr_ = n) << endl;
-    unsigned long e;
-    while ((e = ERR_get_error()) != 0)
-      logerr << "ssl errstk: " << ERR_error_string(e, nullptr) << endl;
-    return false;
-  }
+  return ((::SSL_get_shutdown(ssl_) & (SSL_SENT_SHUTDOWN | SSL_RECEIVED_SHUTDOWN)) != (SSL_SENT_SHUTDOWN | SSL_RECEIVED_SHUTDOWN));
 }
 
 bool SSLH::verify()
 {
-  if (!conn_)
+  if (!connected())
     return false;
 
   if (!vify_) {
@@ -216,6 +203,59 @@ streamsize SSLH::write(const void *buf, size_t bufsz)
     while ((e = ERR_get_error()) != 0)
       logerr << "ssl errstk: " << ERR_error_string(e, nullptr) << endl;
     return -1;
+  }
+}
+
+
+bool SSLH::shutrd()
+{
+  if (!shutwr())
+    return false;
+  if (rdshut())
+    return true;
+
+  int n;
+  unsigned long e;
+  while (1) switch(n = ::SSL_shutdown(ssl_))
+  {
+  case 1:
+    return true;
+  case 0:
+    continue;
+  default:
+    if (((n = SSL_get_error(ssl_, n)) == SSL_ERROR_WANT_READ) || (n == SSL_ERROR_WANT_WRITE))
+      continue;
+
+    logwrn << "graceful SSL_shutdown() failed with ssl error " << (lasterr_ = n) << endl;
+    while ((e = ERR_get_error()) != 0)
+      logwrn << "ssl errstk: " << ERR_error_string(e, nullptr) << endl;
+
+    ::SSL_set_shutdown(ssl_, (SSL_SENT_SHUTDOWN | SSL_RECEIVED_SHUTDOWN));
+    return true;
+  }
+}
+
+bool SSLH::shutwr()
+{
+  if (wrshut())
+    return true;
+
+  int n;
+  unsigned long e;
+  while (1) switch(n = ::SSL_shutdown(ssl_))
+  {
+  case 1:
+  case 0:
+    return true;
+  default:
+    if (((n = SSL_get_error(ssl_, n)) == SSL_ERROR_WANT_READ) || (n == SSL_ERROR_WANT_WRITE))
+      continue;
+
+    logerr << "SSL_shutdown() failed with ssl error " << (lasterr_ = n) << endl;
+    while ((e = ERR_get_error()) != 0)
+      logerr << "ssl errstk: " << ERR_error_string(e, nullptr) << endl;
+
+    return false;
   }
 }
 

@@ -23,7 +23,11 @@ static SSLH do_ssl_conn()
 #if (_TEST_ALL == 1) || (_TEST_GRP_SSL == 1) || (_TEST_SSL_CONN == 1)
 void test_ssl_conn()
 {
-  do_ssl_conn();
+  SSLH sslh = do_ssl_conn();
+  if (sslh.wrshut())
+    logexc << "ssl connect test failed, wrshut() returned true after connect()" << endl;
+  if (sslh.rdshut())
+    logexc << "ssl connect test failed, rdshut() returned true after connect()" << endl;
 }
 #endif
 
@@ -33,6 +37,10 @@ void test_ssl_shut()
   SSLH sslh = do_ssl_conn();
   if (!sslh.shutdown())
     logexc << "ssl shutdown test failed" << endl;
+  if (!sslh.wrshut())
+    logexc << "ssl shutdown test failed, wrshut() returned false after shutdown()" << endl;
+  if (!sslh.rdshut())
+    logexc << "ssl shotdown test failed, rdshut() returned false after shutdown()" << endl;
 }
 #endif
 

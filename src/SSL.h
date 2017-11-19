@@ -38,17 +38,22 @@ public:
   const std::string &certname() const { return certname_; }
   const std::string &certissuer() const { return certissuer_; }
 
+  bool rdshut();
+  bool wrshut();
+
   bool connect();
-  bool shutdown();
+  bool connected();
   bool verify();
   std::streamsize read(void *buf, std::size_t bufsz);
   std::streamsize write(const void *buf, std::size_t bufsz);
+  bool shutrd();
+  bool shutwr();
+  bool shutdown() { return shutwr() && shutrd(); }
 
 private:
   SSLH &move(SSLH &from);
   SSL *CreateH();
 
-  bool conn_;     /**< connected flag */
   bool vify_;     /**< connection verify flag */
   long vifyrslt_; /**< keeps return value of SSL_get_verify_result() */
   int lasterr_;   /**< last SSL_ERROR_XXX reported by ssl layer */
@@ -64,7 +69,7 @@ private:
 
 template<typename _E, typename _Tr = std::char_traits<_E> >
 class BasicSSLSock:
-  public SSLH,
+  protected SSLH,
   private std::unique_ptr<BasicIStreamBuf<_E, _Tr> >,
   private std::unique_ptr<BasicOStreamBuf<_E, _Tr> >,
   public BasicSock<_E, _Tr>
