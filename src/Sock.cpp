@@ -70,6 +70,10 @@ FD SockFN::Connect(const char *addr)
   }
 
   std::string straddr(addr, srvc++);
+  if ((straddr.size() != 0) && (straddr.front() == '[') && (straddr.back() == ']')) {
+    straddr.erase(straddr.begin());
+    straddr.pop_back();
+  }
   struct addrinfo *aires, hints;
   memset(&hints, 0, sizeof(hints));
   hints.ai_family = AF_UNSPEC;

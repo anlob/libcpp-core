@@ -30,6 +30,9 @@ int main()
   test_app_confdir();
 #endif
 
+#if (_TEST_ALL == 1) || (_TEST_GRP_SOCK == 1) || (_TEST_SOCK_IPV6CONN == 1)
+  test_sock_ipv6conn();
+#endif
 #if (_TEST_ALL == 1) || (_TEST_GRP_SOCK == 1) || (_TEST_SOCK_HTTPREQ == 1)
   test_sock_httpreq();
 #endif
