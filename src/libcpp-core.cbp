@@ -85,6 +85,8 @@
 		<Unit filename="Sock.h" />
 		<Unit filename="StreamBuf.cpp" />
 		<Unit filename="StreamBuf.h" />
+		<Unit filename="UMask.cpp" />
+		<Unit filename="UMask.h" />
 		<Unit filename="libcpp-core.cpp" />
 		<Unit filename="libcpp-core.h" />
 		<Unit filename="version.h" />
