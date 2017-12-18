@@ -63,9 +63,10 @@ FD SockFN::Connect(const char *addr)
   const char *srvc;
   if ((strchr(addr, '/') != nullptr) || ((srvc = strrchr(addr, ':')) == nullptr)) {
     struct sockaddr_un saddr;
+    if (strlen(addr) >= sizeof(saddr.sun_path))
+      logexc << "failed to connect \"" << addr << "\", pathname too long" << std::endl;
     saddr.sun_family = AF_LOCAL;
-    strncpy(saddr.sun_path, addr, sizeof(saddr.sun_path) - 1);
-    saddr.sun_path[sizeof(saddr.sun_path) - 1] = '\0';
+    strcpy(saddr.sun_path, addr);
     return Connect((struct sockaddr *) &saddr);
   }
 
