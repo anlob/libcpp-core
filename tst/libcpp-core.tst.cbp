@@ -54,6 +54,8 @@
 		<Unit filename="pipe.h" />
 		<Unit filename="process.cpp" />
 		<Unit filename="process.h" />
+		<Unit filename="signal.cpp" />
+		<Unit filename="signal.h" />
 		<Unit filename="sock.cpp" />
 		<Unit filename="sock.h" />
 		<Unit filename="ssl.cpp" />

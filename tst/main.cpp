@@ -4,6 +4,7 @@
 #include "sock.h"
 #include "pipe.h"
 #include "process.h"
+#include "signal.h"
 #include "iomanip.h"
 #include "streambuf.h"
 #include "ssl.h"
@@ -49,6 +50,10 @@ int main()
 #endif
 #if (_TEST_ALL == 1) || (_TEST_GRP_PROC == 1) || (_TEST_PROC_FN == 1)
   test_proc_fn();
+#endif
+
+#if (_TEST_ALL == 1) || (_TEST_GRP_PROC == 1) || (_TEST_SIG_MASK == 1)
+  test_sig_mask();
 #endif
 
 #if (_TEST_ALL == 1) || (_TEST_GRP_IOMNP == 1) || (_TEST_IOMNP_GETCSTR == 1)

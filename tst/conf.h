@@ -36,6 +36,9 @@
 #define _TEST_PROC_EXEC     0
 #define _TEST_PROC_FN       0
 
+// enable particular signal test
+#define _TEST_SIG_MASK      0
+
 // enable particular iomanip test
 #define _TEST_IOMNP_GETCSTR 0
 #define _TEST_IOMNP_PUTCSTR 0
