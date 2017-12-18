@@ -73,6 +73,8 @@ FD SockFN::Connect(const char *addr)
   if ((straddr.size() != 0) && (straddr.front() == '[') && (straddr.back() == ']')) {
     straddr.erase(straddr.begin());
     straddr.pop_back();
+  } else if (strchr(straddr.c_str(), ':') != nullptr) {
+    logexc << "failed to connect \"" << addr << "\", malformed address" << std::endl;
   }
   struct addrinfo *aires, hints;
   memset(&hints, 0, sizeof(hints));
