@@ -13,6 +13,12 @@ void test_sock_httpreq();
 #if (_TEST_ALL == 1) || (_TEST_GRP_SOCK == 1) || (_TEST_SOCK_SHUT == 1)
 void test_sock_shut();
 #endif
+#if (_TEST_ALL == 1) || (_TEST_GRP_SOCK == 1) || (_TEST_SOCK_LISTEN == 1)
+void test_sock_listen();
+#endif
+#if (_TEST_ALL == 1) || (_TEST_GRP_SOCK == 1) || (_TEST_SOCK_ADDRSTR == 1)
+void test_sock_addrstr();
+#endif
 
 
 #endif // TEST_SOCK_H_INCLUDED

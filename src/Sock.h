@@ -28,8 +28,13 @@ class SockFN
 {
 public:
   virtual ~SockFN() {}
+  static unsigned AddrLen(struct sockaddr *addr);
+  static int AddrDomain(struct sockaddr *addr);
+  static std::string AddrStr(struct sockaddr *addr);
   static FD Connect(struct sockaddr *addr);
   static FD Connect(const char *addr);
+  static FD Listen(struct sockaddr *addr);
+  static FD Listen(const char *addr);
 };
 
 template<typename _E, typename _Tr = std::char_traits<_E> >

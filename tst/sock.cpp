@@ -47,3 +47,29 @@ void test_sock_shut()
   sock.put(c);
 }
 #endif
+
+#if (_TEST_ALL == 1) || (_TEST_GRP_SOCK == 1) || (_TEST_SOCK_LISTEN == 1)
+void test_sock_listen()
+{
+  SockFN::Listen("[::1]:7421");
+}
+#endif
+
+#if (_TEST_ALL == 1) || (_TEST_GRP_SOCK == 1) || (_TEST_SOCK_ADDRSTR == 1)
+void test_sock_addrstr()
+{
+  struct sockaddr_in sin;
+  inet_pton(sin.sin_family = AF_INET, "192.168.0.1", &sin.sin_addr);
+  sin.sin_port = htons(1234);
+  string s = SockFN::AddrStr((struct sockaddr *) &sin);
+  if (s != "192.168.0.1:1234")
+    logexc << "SockFN::AddrStr() failed to convert 192.168.0.1:1234" << endl;
+
+  struct sockaddr_in6 sin6;
+  inet_pton(sin6.sin6_family = AF_INET6, "::1", &sin6.sin6_addr);
+  sin6.sin6_port = htons(1234);
+  s = SockFN::AddrStr((struct sockaddr *) &sin6);
+  if (s != "[::1]:1234")
+    logexc << "SockFN::AddrStr() failed to convert [::1]:1234" << endl;
+}
+#endif

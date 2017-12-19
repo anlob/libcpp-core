@@ -29,6 +29,8 @@
 #define _TEST_SOCK_IPV6CONN 0
 #define _TEST_SOCK_HTTPREQ  0
 #define _TEST_SOCK_SHUT     0
+#define _TEST_SOCK_LISTEN   0
+#define _TEST_SOCK_ADDRSTR  0
 
 // enable particular pipe test
 #define _TEST_PIPE_IO       0

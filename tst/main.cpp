@@ -40,6 +40,12 @@ int main()
 #if (_TEST_ALL == 1) || (_TEST_GRP_SOCK == 1) || (_TEST_SOCK_SHUT == 1)
   test_sock_shut();
 #endif
+#if (_TEST_ALL == 1) || (_TEST_GRP_SOCK == 1) || (_TEST_SOCK_LISTEN == 1)
+  test_sock_listen();
+#endif
+#if (_TEST_ALL == 1) || (_TEST_GRP_SOCK == 1) || (_TEST_SOCK_ADDRSTR == 1)
+  test_sock_addrstr();
+#endif
 
 #if (_TEST_ALL == 1) || (_TEST_GRP_PIPE == 1) || (_TEST_PIPE_IO == 1)
   test_pipe_io();
