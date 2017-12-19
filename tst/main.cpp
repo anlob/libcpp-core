@@ -52,7 +52,7 @@ int main()
   test_proc_fn();
 #endif
 
-#if (_TEST_ALL == 1) || (_TEST_GRP_PROC == 1) || (_TEST_SIG_MASK == 1)
+#if (_TEST_ALL == 1) || (_TEST_GRP_SIG == 1) || (_TEST_SIG_MASK == 1)
   test_sig_mask();
 #endif
 

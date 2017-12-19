@@ -11,6 +11,7 @@
 #define _TEST_GRP_SOCK  0
 #define _TEST_GRP_PIPE  0
 #define _TEST_GRP_PROC  0
+#define _TEST_GRP_SIG   0
 #define _TEST_GRP_IOMNP 0
 #define _TEST_GRP_STMBF 0
 #define _TEST_GRP_SSL   0
