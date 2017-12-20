@@ -24,6 +24,43 @@
 #include "FDStream.h"
 
 
+class SockAddr
+{
+public:
+  union UData
+  {
+    struct sockaddr sa;
+    struct sockaddr_un un;
+    struct sockaddr_in in;
+    struct sockaddr_in6 in6;
+  };
+
+  SockAddr(UData &data): data_(data) {}
+  virtual ~SockAddr() {}
+
+  SockAddr &reset() { sa().sa_family = AF_UNSPEC; return *this; }
+  int family() const { return sa().sa_family; }
+
+  struct sockaddr &sa() const { return data_.sa; }
+  struct sockaddr_un &un() const { return data_.un; }
+  struct sockaddr_in &in() const { return data_.in; }
+  struct sockaddr_in6 &in6() const { return data_.in6; }
+
+protected:
+  UData &data_;
+};
+
+class SockAddrData: public SockAddr
+{
+public:
+  SockAddrData(): SockAddr(data_) { reset(); }
+  virtual ~SockAddrData() {}
+
+protected:
+  UData data_;
+};
+
+
 class SockFN
 {
 public:
