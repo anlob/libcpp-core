@@ -4,6 +4,8 @@
 #include <cerrno>
 #include <ctime>
 #include <cstring>
+#include <ctype.h>
+#include <alloca.h>
 #include <netdb.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -17,6 +19,186 @@
 #include "Sock.h"
 
 using namespace std;
+
+
+NetAddr &NetAddr::operator&=(const NetAddr &src)
+{
+  if (family() == AF_UNSPEC)
+    logexc << "NetAddr::operator&=() failed, this is not initialized" << std::endl;
+  if (family() != src.family())
+    logexc << "NetAddr::operator&=() failed, operator value of different address family" << std::endl;
+
+  switch(family())
+  {
+  case AF_INET:
+    in().sin_addr.s_addr &= src.in().sin_addr.s_addr;
+    break;
+  case AF_INET6:
+    for (int i = 0; i < 16; ++i)
+      in6().sin6_addr.s6_addr[i] &= src.in6().sin6_addr.s6_addr[i];
+    break;
+  default:
+    logexc << "NetAddr::operator&=() failed, unsupported address family" << std::endl;
+  }
+  return *this;
+}
+
+bool NetAddr::operator<(const NetAddr &cmp) const
+{
+  if (family() == AF_UNSPEC)
+    logexc << "NetAddr::operator<() failed, this is not initialized" << std::endl;
+  if (family() != cmp.family())
+    logexc << "NetAddr::operator<() failed, comparator value of different address family" << std::endl;
+
+  switch(family())
+  {
+  case AF_INET:
+    return ntohl(in().sin_addr.s_addr) < ntohl(cmp.in().sin_addr.s_addr);
+  case AF_INET6:
+    return (::memcmp(&in6().sin6_addr.s6_addr[0], &cmp.in6().sin6_addr.s6_addr[0], 16) < 0);
+  default:
+    logexc << "NetAddr::operator<() failed, unsupported address family" << std::endl;
+    return false;
+  }
+}
+
+bool NetAddr::operator>(const NetAddr &cmp) const
+{
+  if (family() == AF_UNSPEC)
+    logexc << "NetAddr::operator>() failed, this is not initialized" << std::endl;
+  if (family() != cmp.family())
+    logexc << "NetAddr::operator>() failed, comparator value of different address family" << std::endl;
+
+  switch(family())
+  {
+  case AF_INET:
+    return ntohl(in().sin_addr.s_addr) > ntohl(cmp.in().sin_addr.s_addr);
+  case AF_INET6:
+    return (::memcmp(&in6().sin6_addr.s6_addr[0], &cmp.in6().sin6_addr.s6_addr[0], 16) > 0);
+  default:
+    logexc << "NetAddr::operator>() failed, unsupported address family" << std::endl;
+    return false;
+  }
+}
+
+bool NetAddr::operator==(const NetAddr &cmp) const
+{
+  if (family() == AF_UNSPEC)
+    logexc << "NetAddr::operator<() failed, this is not initialized" << std::endl;
+  if (family() != cmp.family())
+    logexc << "NetAddr::operator<() failed, comparator value of different address family" << std::endl;
+
+  switch(family())
+  {
+  case AF_INET:
+    return ntohl(in().sin_addr.s_addr) == ntohl(cmp.in().sin_addr.s_addr);
+  case AF_INET6:
+    return (::memcmp(&in6().sin6_addr.s6_addr[0], &cmp.in6().sin6_addr.s6_addr[0], 16) == 0);
+  default:
+    logexc << "NetAddr::operator==() failed, unsupported address family" << std::endl;
+    return false;
+  }
+}
+
+NetMask::NetMask(const char *mask)
+{
+  const char *p;
+  size_t l;
+  if ((p = strchr(mask, '-')) != nullptr) {
+    if (!ScanAddr(mask, p - mask, addr_[0]) || !(++p, ScanAddr(p, strlen(p), addr_[1])) || (addr_[0].family() != addr_[1].family()))
+      logexc << "NetMask::NetMask() failed, malformed address(es) in range indication" << std::endl;
+    if (addr_[0] >= addr_[1])
+      logexc << "NetMask::NetMask() failed, bad range" << std::endl;
+  } else if ((p = strchr(mask, '/')) != nullptr) {
+
+  } else if (ScanAddr(mask, l = strlen(mask), addr_[0])) {
+    addr_[1] = addr_[0];
+  } else {
+    if (!ScanName(mask, l, name_))
+      logexc << "NetMask::NetMask() failed, empty string" << std::endl;
+  }
+}
+
+
+bool NetMask::ScanAddr(const char *buf, size_t len, NetAddr &addr)
+{
+  const char *q = buf;
+  const char *p = buf + len;
+  while ((q > p) && isspace(*q))
+    ++q;
+  while ((q > p) && isspace(p[-1]))
+    --p;
+  size_t n = p - q;
+  char *bf = (char *) memcpy(alloca(n + 1), q, n);
+  bf[n] = '\0';
+
+  if (inet_pton(AF_INET, bf, &addr.in()) == 1)
+    return true;
+  if (inet_pton(AF_INET6, bf, &addr.in6()) == 1)
+    return true;
+  addr.reset();
+  return false;
+}
+
+bool NetMask::ScanCIDR(const char *buf, size_t len, const NetAddr &addr, NetAddr &mask)
+{
+  unsigned cidr = 0, x = 0;
+  switch(addr.family())
+  {
+  case AF_INET:
+    x = 32;
+    break;
+  case AF_INET6:
+    x = 128;
+    break;
+  default:
+    logexc << "NetAddr::ScanCIDR() failed, unsupported address family" << std::endl;
+  }
+
+  const char *q = buf;
+  const char *p = buf + len;
+  while ((q > p) && isspace(*q))
+    ++q;
+  while ((q > p) && isspace(p[-1]))
+    --p;
+  while (q > p) {
+    if (!isdigit(*q))
+      return false;
+    cidr *= 10;
+    cidr += (*q++ - '0');
+    if (cidr > x)
+      return false;
+  }
+
+  switch(mask.sa().sa_family = addr.family())
+  {
+  case AF_INET:
+    mask.in().sin_addr.s_addr = htonl((0xffffffffUL >> (32 - cidr)) << (32 - cidr));
+    break;
+  case AF_INET6:
+    for (x = 0; x < 16; ++x) {
+      unsigned d = (cidr >= 8) ? 8 : cidr;
+      mask.in6().sin6_addr.s6_addr[x] = (unsigned char) (0xffU << (8 - d));
+      cidr -= d;
+    }
+    break;
+  }
+
+  return true;
+}
+
+bool NetMask::ScanName(const char *buf, size_t len, std::string &name)
+{
+  const char *q = buf;
+  const char *p = buf + len;
+  while ((q > p) && isspace(*q))
+    ++q;
+  while ((q > p) && isspace(p[-1]))
+    --p;
+  size_t n = p - q;
+  name = std::string(q, n);
+  return (n != 0) ? true : false;
+}
 
 
 unsigned SockFN::AddrLen(struct sockaddr *addr)

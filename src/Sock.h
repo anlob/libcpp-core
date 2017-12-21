@@ -60,6 +60,64 @@ protected:
   UData data_;
 };
 
+class NetAddr
+{
+public:
+  union UData
+  {
+    struct sockaddr sa;
+    struct sockaddr_in in;
+    struct sockaddr_in6 in6;
+  };
+
+  NetAddr(UData &data): data_(data) {}
+  virtual ~NetAddr() {}
+
+  NetAddr &operator=(const NetAddr &src) { memcpy(&data_, &src.data_, sizeof(data_)); return *this; }
+
+  NetAddr &reset() { sa().sa_family = AF_UNSPEC; return *this; }
+  int family() const { return sa().sa_family; }
+
+  struct sockaddr &sa() const { return data_.sa; }
+  struct sockaddr_in &in() const { return data_.in; }
+  struct sockaddr_in6 &in6() const { return data_.in6; }
+
+  NetAddr &operator&=(const NetAddr &src);
+  bool operator<(const NetAddr &cmp) const;
+  bool operator>(const NetAddr &cmp) const;
+  bool operator<=(const NetAddr &cmp) const { return !operator>(cmp); }
+  bool operator>=(const NetAddr &cmp) const { return !operator<(cmp); }
+  bool operator==(const NetAddr &cmp) const;
+
+protected:
+  UData &data_;
+};
+
+class NetAddrData: public NetAddr
+{
+public:
+  NetAddrData(): NetAddr(data_) { reset(); }
+  virtual ~NetAddrData() {}
+
+protected:
+  UData data_;
+};
+
+class NetMask
+{
+public:
+  NetMask(const char *mask);
+  virtual ~NetMask() {}
+
+protected:
+  std::string name_;
+  NetAddrData addr_[2];
+
+private:
+  static bool ScanAddr(const char *buf, size_t len, NetAddr &addr);
+  static bool ScanCIDR(const char *buf, size_t len, const NetAddr &addr, NetAddr &mask);
+  static bool ScanName(const char *buf, size_t len, std::string &name);
+};
 
 class SockFN
 {
