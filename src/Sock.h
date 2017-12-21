@@ -60,6 +60,7 @@ protected:
   UData data_;
 };
 
+class NetAddrData;
 class NetAddr
 {
 public:
@@ -82,7 +83,9 @@ public:
   struct sockaddr_in &in() const { return data_.in; }
   struct sockaddr_in6 &in6() const { return data_.in6; }
 
+  NetAddrData operator~();
   NetAddr &operator&=(const NetAddr &src);
+  NetAddr &operator|=(const NetAddr &src);
   bool operator<(const NetAddr &cmp) const;
   bool operator>(const NetAddr &cmp) const;
   bool operator<=(const NetAddr &cmp) const { return !operator>(cmp); }

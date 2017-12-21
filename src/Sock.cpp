@@ -21,6 +21,27 @@
 using namespace std;
 
 
+NetAddrData NetAddr::operator~()
+{
+  if (family() == AF_UNSPEC)
+    logexc << "NetAddr::operator~() failed, this is not initialized" << std::endl;
+
+  NetAddrData rt;
+  switch(rt.sa().sa_family = family())
+  {
+  case AF_INET:
+    rt.in().sin_addr.s_addr = ~in().sin_addr.s_addr;
+    break;
+  case AF_INET6:
+    for (int i = 0; i < 16; ++i)
+      rt.in6().sin6_addr.s6_addr[i] = ~in6().sin6_addr.s6_addr[i];
+    break;
+  default:
+    logexc << "NetAddr::operator~() failed, unsupported address family" << std::endl;
+  }
+  return rt;
+}
+
 NetAddr &NetAddr::operator&=(const NetAddr &src)
 {
   if (family() == AF_UNSPEC)
@@ -39,6 +60,28 @@ NetAddr &NetAddr::operator&=(const NetAddr &src)
     break;
   default:
     logexc << "NetAddr::operator&=() failed, unsupported address family" << std::endl;
+  }
+  return *this;
+}
+
+NetAddr &NetAddr::operator|=(const NetAddr &src)
+{
+  if (family() == AF_UNSPEC)
+    logexc << "NetAddr::operator|=() failed, this is not initialized" << std::endl;
+  if (family() != src.family())
+    logexc << "NetAddr::operator|=() failed, operator value of different address family" << std::endl;
+
+  switch(family())
+  {
+  case AF_INET:
+    in().sin_addr.s_addr |= src.in().sin_addr.s_addr;
+    break;
+  case AF_INET6:
+    for (int i = 0; i < 16; ++i)
+      in6().sin6_addr.s6_addr[i] |= src.in6().sin6_addr.s6_addr[i];
+    break;
+  default:
+    logexc << "NetAddr::operator|=() failed, unsupported address family" << std::endl;
   }
   return *this;
 }
@@ -105,11 +148,15 @@ NetMask::NetMask(const char *mask)
   const char *p;
   size_t l;
   if ((p = strchr(mask, '-')) != nullptr) {
-    if (!ScanAddr(mask, p - mask, addr_[0]) || !(++p, ScanAddr(p, strlen(p), addr_[1])) || (addr_[0].family() != addr_[1].family()))
-      logexc << "NetMask::NetMask() failed, malformed address(es) in range indication" << std::endl;
+    if (!ScanAddr(mask, p++ - mask, addr_[0]) || !ScanAddr(p, strlen(p), addr_[1]) || (addr_[0].family() != addr_[1].family()))
+      logexc << "NetMask::NetMask() failed, bad address(es) in range indication" << std::endl;
     if (addr_[0] >= addr_[1])
       logexc << "NetMask::NetMask() failed, bad range" << std::endl;
   } else if ((p = strchr(mask, '/')) != nullptr) {
+    if (!ScanAddr(mask, p++ - mask, addr_[0]))
+      logexc << "NetMask::NetMask() failed, bad address" << std::endl;
+    if (!ScanCIDR(p, strlen(p), addr_[0], addr_[1]))
+      logexc << "NetMask::NetMask() failed, bad CIDR" << std::endl;
 
   } else if (ScanAddr(mask, l = strlen(mask), addr_[0])) {
     addr_[1] = addr_[0];
