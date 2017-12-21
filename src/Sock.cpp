@@ -42,6 +42,20 @@ NetAddrData NetAddr::operator~()
   return rt;
 }
 
+NetAddrData NetAddr::operator&(const NetAddr &src)
+{
+  NetAddrData rt = *this;
+  rt &= src;
+  return rt;
+}
+
+NetAddrData NetAddr::operator|(const NetAddr &src)
+{
+  NetAddrData rt = *this;
+  rt |= src;
+  return rt;
+}
+
 NetAddr &NetAddr::operator&=(const NetAddr &src)
 {
   if (family() == AF_UNSPEC)
@@ -157,7 +171,10 @@ NetMask::NetMask(const char *mask)
       logexc << "NetMask::NetMask() failed, bad address" << std::endl;
     if (!ScanCIDR(p, strlen(p), addr_[0], addr_[1]))
       logexc << "NetMask::NetMask() failed, bad CIDR" << std::endl;
-
+    if (addr_[0] != (addr_[0] & addr_[1]))
+      logexc << "NetMask::NetMask() failed, address does not fit in mask" << std::endl;
+    addr_[1] =  ~addr_[1];
+    addr_[1] |= addr_[0];
   } else if (ScanAddr(mask, l = strlen(mask), addr_[0])) {
     addr_[1] = addr_[0];
   } else {

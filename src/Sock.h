@@ -85,12 +85,15 @@ public:
 
   NetAddrData operator~();
   NetAddr &operator&=(const NetAddr &src);
+  NetAddrData operator&(const NetAddr &src);
   NetAddr &operator|=(const NetAddr &src);
+  NetAddrData operator|(const NetAddr &src);
   bool operator<(const NetAddr &cmp) const;
   bool operator>(const NetAddr &cmp) const;
   bool operator<=(const NetAddr &cmp) const { return !operator>(cmp); }
   bool operator>=(const NetAddr &cmp) const { return !operator<(cmp); }
   bool operator==(const NetAddr &cmp) const;
+  bool operator!=(const NetAddr &cmp) const { return !operator==(cmp); }
 
 protected:
   UData &data_;
@@ -100,6 +103,7 @@ class NetAddrData: public NetAddr
 {
 public:
   NetAddrData(): NetAddr(data_) { reset(); }
+  NetAddrData(const NetAddr &src): NetAddr(data_) { *this = src; }
   virtual ~NetAddrData() {}
 
 protected:
