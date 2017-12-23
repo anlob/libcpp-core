@@ -60,6 +60,7 @@ protected:
   UData data_;
 };
 
+
 class NetAddrData;
 class NetAddr
 {
@@ -110,11 +111,15 @@ protected:
   UData data_;
 };
 
+
 class NetMask
 {
 public:
   NetMask(const char *mask);
   virtual ~NetMask() {}
+
+  const std::string &name() const { return name_; }
+  const NetAddrData &addr(int i) const { return addr_[i]; }
 
 protected:
   std::string name_;
@@ -125,6 +130,13 @@ private:
   static bool ScanCIDR(const char *buf, size_t len, const NetAddr &addr, NetAddr &mask);
   static bool ScanName(const char *buf, size_t len, std::string &name);
 };
+
+
+std::ostream &operator<<(std::ostream &os, const struct sockaddr &addr);
+inline std::ostream &operator<<(std::ostream &os, const SockAddr &addr) { return os << addr.sa(); }
+inline std::ostream &operator<<(std::ostream &os, const NetAddr &addr) { return os << addr.sa(); }
+std::ostream &operator<<(std::ostream &os, const struct NetMask &netmsk);
+
 
 class SockFN
 {
@@ -138,6 +150,7 @@ public:
   static FD Listen(struct sockaddr *addr);
   static FD Listen(const char *addr);
 };
+
 
 template<typename _E, typename _Tr = std::char_traits<_E> >
 class BasicSock:

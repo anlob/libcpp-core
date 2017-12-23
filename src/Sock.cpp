@@ -157,13 +157,14 @@ bool NetAddr::operator==(const NetAddr &cmp) const
   }
 }
 
+
 NetMask::NetMask(const char *mask)
 {
   const char *p;
   size_t l;
   if ((p = strchr(mask, '-')) != nullptr) {
     if (!ScanAddr(mask, p++ - mask, addr_[0]) || !ScanAddr(p, strlen(p), addr_[1]) || (addr_[0].family() != addr_[1].family()))
-      logexc << "NetMask::NetMask() failed, bad address(es) in range indication" << std::endl;
+      logexc << "NetMask::NetMask() failed, bad address(es)" << std::endl;
     if (addr_[0] >= addr_[1])
       logexc << "NetMask::NetMask() failed, bad range" << std::endl;
   } else if ((p = strchr(mask, '/')) != nullptr) {
@@ -262,6 +263,42 @@ bool NetMask::ScanName(const char *buf, size_t len, std::string &name)
   size_t n = p - q;
   name = std::string(q, n);
   return (n != 0) ? true : false;
+}
+
+
+std::ostream &operator<<(std::ostream &os, const struct sockaddr &addr)
+{
+  char sa[256];
+  char sp[16];
+
+  switch(addr.sa_family)
+  {
+  case AF_INET:
+    return os
+      << ::inet_ntop(AF_INET, &((const struct sockaddr_in &) addr).sin_addr, sa, sizeof(sa))
+      << ":"
+      << (::sprintf(sp, "%u", ntohs(((const struct sockaddr_in &) addr).sin_port)), sp);
+  case AF_INET6:
+    return os
+      << "["
+      << ::inet_ntop(AF_INET6, &((const struct sockaddr_in6 &) addr).sin6_addr, sa, sizeof(sa))
+      << "]"
+      << (::sprintf(sp, ":%u", ntohs(((const struct sockaddr_in6 &) addr).sin6_port)), sp);
+  case AF_LOCAL:
+      return os << ((const struct sockaddr_un &) addr).sun_path;
+  default:
+    logexc << "unsupported sockaddr::sa_family = " << addr.sa_family << std::endl;
+    return os;
+  }
+}
+
+std::ostream &operator<<(std::ostream &os, const struct NetMask &netmsk)
+{
+  const std::string &name = netmsk.name();
+  if (!name.empty())
+    return os << name;
+  // TODO: use more compact CIDR notation where applicable.
+  return os << netmsk.addr(0) << "-" << netmsk.addr(1);
 }
 
 
