@@ -21,6 +21,23 @@
 using namespace std;
 
 
+NetAddr &NetAddr::operator=(const sockaddr &src)
+{
+  switch(src.sa_family)
+  {
+  case AF_INET:
+    in().sin_addr.s_addr &= ((const struct sockaddr_in &) src).sin_addr.s_addr;
+    break;
+  case AF_INET6:
+    for (int i = 0; i < 16; ++i)
+      in6().sin6_addr.s6_addr[i] = ((const struct sockaddr_in6 &) src).sin6_addr.s6_addr[i];
+    break;
+  default:
+    logexc << "NetAddr::operato&=(const sockaddr &) failed, unsupported address family" << std::endl;
+  }
+  return *this;
+}
+
 NetAddrData NetAddr::operator~()
 {
   if (family() == AF_UNSPEC)
@@ -182,6 +199,31 @@ NetMask::NetMask(const char *mask)
     if (!ScanName(mask, l, name_))
       logexc << "NetMask::NetMask() failed, empty string" << std::endl;
   }
+}
+
+bool NetMask::match(const NetAddr &addr)
+{
+  if (!name_.empty()) {
+    if (name_ == "*")
+      return true;
+
+    struct addrinfo *aires, hints;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = addr.family();
+    hints.ai_socktype = SOCK_STREAM;
+    int airt = ::getaddrinfo(name_.c_str(), nullptr, &hints, &aires);
+    if (airt != 0)
+      return false;
+
+    bool rt = false;
+    for (struct addrinfo *ai = aires; ai != nullptr; ai = ai->ai_next)
+      rt |= (addr == *ai->ai_addr);
+    if (aires != nullptr)
+      ::freeaddrinfo(aires);
+    return rt;
+  }
+
+  return ((addr.family() == addr_[0].family()) && (addr >= addr_[0]) && (addr <= addr_[1]));
 }
 
 

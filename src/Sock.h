@@ -76,6 +76,7 @@ public:
   virtual ~NetAddr() {}
 
   NetAddr &operator=(const NetAddr &src) { memcpy(&data_, &src.data_, sizeof(data_)); return *this; }
+  NetAddr &operator=(const sockaddr &src);
 
   NetAddr &reset() { sa().sa_family = AF_UNSPEC; return *this; }
   int family() const { return sa().sa_family; }
@@ -96,6 +97,13 @@ public:
   bool operator==(const NetAddr &cmp) const;
   bool operator!=(const NetAddr &cmp) const { return !operator==(cmp); }
 
+  bool operator<(const sockaddr &cmp) const { return operator<(NetAddr((UData &) cmp)); }
+  bool operator>(const sockaddr &cmp) const { return operator>(NetAddr((UData &) cmp)); }
+  bool operator<=(const sockaddr &cmp) const { return operator<=(NetAddr((UData &) cmp)); }
+  bool operator>=(const sockaddr &cmp) const { return operator>=(NetAddr((UData &) cmp)); }
+  bool operator==(const sockaddr &cmp) const { return operator==(NetAddr((UData &) cmp)); }
+  bool operator!=(const sockaddr &cmp) const { return operator!=(NetAddr((UData &) cmp)); }
+
 protected:
   UData &data_;
 };
@@ -105,6 +113,7 @@ class NetAddrData: public NetAddr
 public:
   NetAddrData(): NetAddr(data_) { reset(); }
   NetAddrData(const NetAddr &src): NetAddr(data_) { *this = src; }
+  NetAddrData(const sockaddr &src): NetAddr(data_) { *this = src; }
   virtual ~NetAddrData() {}
 
 protected:
@@ -120,6 +129,8 @@ public:
 
   const std::string &name() const { return name_; }
   const NetAddrData &addr(int i) const { return addr_[i]; }
+
+  bool match(const NetAddr &addr);
 
 protected:
   std::string name_;
