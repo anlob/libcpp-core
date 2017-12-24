@@ -26,14 +26,16 @@ NetAddr &NetAddr::operator=(const sockaddr &src)
   switch(src.sa_family)
   {
   case AF_INET:
-    in().sin_addr.s_addr &= ((const struct sockaddr_in &) src).sin_addr.s_addr;
+    in().sin_family = AF_INET;
+    in().sin_addr.s_addr = ((const struct sockaddr_in &) src).sin_addr.s_addr;
     break;
   case AF_INET6:
+    in6().sin6_family = AF_INET6;
     for (int i = 0; i < 16; ++i)
       in6().sin6_addr.s6_addr[i] = ((const struct sockaddr_in6 &) src).sin6_addr.s6_addr[i];
     break;
   default:
-    logexc << "NetAddr::operato&=(const sockaddr &) failed, unsupported address family" << std::endl;
+    logexc << "NetAddr::operator=(const sockaddr &) failed, unsupported address family" << std::endl;
   }
   return *this;
 }
@@ -296,9 +298,9 @@ bool NetAddr::operator>(const NetAddr &cmp) const
 bool NetAddr::operator==(const NetAddr &cmp) const
 {
   if (family() == AF_UNSPEC)
-    logexc << "NetAddr::operator<() failed, this is not initialized" << std::endl;
+    logexc << "NetAddr::operator==() failed, this is not initialized" << std::endl;
   if (family() != cmp.family())
-    logexc << "NetAddr::operator<() failed, comparator value of different address family" << std::endl;
+    logexc << "NetAddr::operator==() failed, comparator value of different address family" << std::endl;
 
   switch(family())
   {
@@ -320,7 +322,7 @@ NetMask::NetMask(const char *mask)
   if ((p = strchr(mask, '-')) != nullptr) {
     if (!ScanAddr(mask, p++ - mask, addr_[0]) || !ScanAddr(p, strlen(p), addr_[1]) || (addr_[0].family() != addr_[1].family()))
       logexc << "NetMask::NetMask() failed, bad address(es)" << std::endl;
-    if (addr_[0] >= addr_[1])
+    if (addr_[0] > addr_[1])
       logexc << "NetMask::NetMask() failed, bad range" << std::endl;
   } else if ((p = strchr(mask, '/')) != nullptr) {
     if (!ScanAddr(mask, p++ - mask, addr_[0]))
