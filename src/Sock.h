@@ -90,6 +90,8 @@ public:
   NetAddrData operator&(const NetAddr &src);
   NetAddr &operator|=(const NetAddr &src);
   NetAddrData operator|(const NetAddr &src);
+  NetAddr &operator^=(const NetAddr &src);
+  NetAddrData operator^(const NetAddr &src);
   bool operator<(const NetAddr &cmp) const;
   bool operator>(const NetAddr &cmp) const;
   bool operator<=(const NetAddr &cmp) const { return !operator>(cmp); }

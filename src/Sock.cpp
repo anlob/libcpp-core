@@ -73,6 +73,13 @@ NetAddrData NetAddr::operator|(const NetAddr &src)
   return rt;
 }
 
+NetAddrData NetAddr::operator^(const NetAddr &src)
+{
+  NetAddrData rt = *this;
+  rt ^= src;
+  return rt;
+}
+
 NetAddr &NetAddr::operator&=(const NetAddr &src)
 {
   if (family() == AF_UNSPEC)
@@ -113,6 +120,28 @@ NetAddr &NetAddr::operator|=(const NetAddr &src)
     break;
   default:
     logexc << "NetAddr::operator|=() failed, unsupported address family" << std::endl;
+  }
+  return *this;
+}
+
+NetAddr &NetAddr::operator^=(const NetAddr &src)
+{
+  if (family() == AF_UNSPEC)
+    logexc << "NetAddr::operator^=() failed, this is not initialized" << std::endl;
+  if (family() != src.family())
+    logexc << "NetAddr::operator^=() failed, operator value of different address family" << std::endl;
+
+  switch(family())
+  {
+  case AF_INET:
+    in().sin_addr.s_addr ^= src.in().sin_addr.s_addr;
+    break;
+  case AF_INET6:
+    for (int i = 0; i < 16; ++i)
+      in6().sin6_addr.s6_addr[i] ^= src.in6().sin6_addr.s6_addr[i];
+    break;
+  default:
+    logexc << "NetAddr::operator^=() failed, unsupported address family" << std::endl;
   }
   return *this;
 }
