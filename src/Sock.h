@@ -85,6 +85,11 @@ public:
   struct sockaddr_in &in() const { return data_.in; }
   struct sockaddr_in6 &in6() const { return data_.in6; }
 
+  bool iszero();
+  NetAddr &setzero();
+  NetAddr &setmsbit(unsigned nbits);
+  unsigned getmsbit();
+
   NetAddrData operator~();
   NetAddr &operator&=(const NetAddr &src);
   NetAddrData operator&(const NetAddr &src);

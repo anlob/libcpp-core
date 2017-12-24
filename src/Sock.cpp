@@ -38,6 +38,115 @@ NetAddr &NetAddr::operator=(const sockaddr &src)
   return *this;
 }
 
+bool NetAddr::iszero()
+{
+  if (family() == AF_UNSPEC)
+    logexc << "NetAddr::iszero() failed, this is not initialized" << std::endl;
+
+  switch(family())
+  {
+  case AF_INET:
+    return (in().sin_addr.s_addr == 0UL);
+  case AF_INET6:
+    for (unsigned x = 0; x < 16; ++x) {
+      if (in6().sin6_addr.s6_addr[x])
+        return false;
+    }
+    return true;
+  default:
+    logexc << "NetAddr::iszero() failed, unsupported address family" << std::endl;
+    return false;
+  }
+}
+
+NetAddr &NetAddr::setzero()
+{
+  if (family() == AF_UNSPEC)
+    logexc << "NetAddr::setzero() failed, this is not initialized" << std::endl;
+
+  switch(family())
+  {
+  case AF_INET:
+    in().sin_addr.s_addr = 0;
+    break;
+  case AF_INET6:
+    for (unsigned x = 0; x < 16; ++x)
+      in6().sin6_addr.s6_addr[x] = 0;
+    break;
+  default:
+    logexc << "NetAddr::setzero() failed, unsupported address family" << std::endl;
+  }
+  return *this;
+}
+
+NetAddr &NetAddr::setmsbit(unsigned nbits)
+{
+  if (family() == AF_UNSPEC)
+    logexc << "NetAddr::setmsbit() failed, this is not initialized" << std::endl;
+
+  switch(family())
+  {
+  case AF_INET:
+    if (nbits > 32)
+      logexc << "NetAddr::setmsbit() failed, nbits invalid" << std::endl;
+    in().sin_addr.s_addr |= htonl((0xffffffffUL >> (32 - nbits)) << (32 - nbits));
+    break;
+  case AF_INET6:
+    if (nbits > 128)
+      logexc << "NetAddr::setmsbit() failed, nbits invalid" << std::endl;
+    for (unsigned x = 0; x < 16; ++x) {
+      unsigned d = (nbits >= 8) ? 8 : nbits;
+      in6().sin6_addr.s6_addr[x] |= (unsigned char) (0xffU << (8 - d));
+      nbits -= d;
+    }
+    break;
+  default:
+    logexc << "NetAddr::setmsbit() failed, unsupported address family" << std::endl;
+  }
+  return *this;
+}
+
+unsigned NetAddr::getmsbit()
+{
+  if (family() == AF_UNSPEC)
+    logexc << "NetAddr::getmsbit() failed, this is not initialized" << std::endl;
+
+  unsigned nbits = 0;
+  switch(family())
+  {
+  case AF_INET:
+    {
+      unsigned long mask = ntohl(in().sin_addr.s_addr);
+      unsigned long b = 0x80000000UL;
+      while ((mask & b) != 0UL) {
+        ++nbits;
+        b >>= 1;
+      }
+    }
+    break;
+  case AF_INET6:
+    {
+      for (unsigned x = 0; x < 16; ++x) {
+        unsigned char mask = in6().sin6_addr.s6_addr[x];
+        if (!((unsigned char) ~mask)) {
+          nbits += 8;
+          continue;
+        }
+        unsigned char b = 0x80U;
+        while (mask & b) {
+          ++nbits;
+          b >>= 1;
+        }
+        break;
+      }
+    }
+    break;
+  default:
+    logexc << "NetAddr::getmsbit() failed, unsupported address family" << std::endl;
+  }
+  return nbits;
+}
+
 NetAddrData NetAddr::operator~()
 {
   if (family() == AF_UNSPEC)
@@ -306,19 +415,9 @@ bool NetMask::ScanCIDR(const char *buf, size_t len, const NetAddr &addr, NetAddr
       return false;
   }
 
-  switch(mask.sa().sa_family = addr.family())
-  {
-  case AF_INET:
-    mask.in().sin_addr.s_addr = htonl((0xffffffffUL >> (32 - cidr)) << (32 - cidr));
-    break;
-  case AF_INET6:
-    for (x = 0; x < 16; ++x) {
-      unsigned d = (cidr >= 8) ? 8 : cidr;
-      mask.in6().sin6_addr.s6_addr[x] = (unsigned char) (0xffU << (8 - d));
-      cidr -= d;
-    }
-    break;
-  }
+  mask.sa().sa_family = addr.family();
+  mask.setzero();
+  mask.setmsbit(cidr);
 
   return true;
 }
@@ -368,7 +467,13 @@ std::ostream &operator<<(std::ostream &os, const struct NetMask &netmsk)
   const std::string &name = netmsk.name();
   if (!name.empty())
     return os << name;
-  // TODO: use more compact CIDR notation where applicable.
+
+  NetAddrData mask = netmsk.addr(0);
+  mask ^= netmsk.addr(1);
+  unsigned cidr = (~mask).getmsbit();
+  if ((mask & netmsk.addr(0)).iszero() && ((mask & netmsk.addr(1)) == mask))
+    return os << netmsk.addr(0) << "/" << cidr;
+
   return os << netmsk.addr(0) << "-" << netmsk.addr(1);
 }
 
