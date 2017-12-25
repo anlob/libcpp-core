@@ -152,7 +152,7 @@ private:
 
 std::ostream &operator<<(std::ostream &os, const struct sockaddr &addr);
 inline std::ostream &operator<<(std::ostream &os, const SockAddr &addr) { return os << addr.sa(); }
-inline std::ostream &operator<<(std::ostream &os, const NetAddr &addr) { return os << addr.sa(); }
+std::ostream &operator<<(std::ostream &os, const NetAddr &addr);
 std::ostream &operator<<(std::ostream &os, const struct NetMask &netmsk);
 
 

@@ -464,6 +464,24 @@ std::ostream &operator<<(std::ostream &os, const struct sockaddr &addr)
   }
 }
 
+std::ostream &operator<<(std::ostream &os, const NetAddr &addr)
+{
+  char sa[256];
+
+  switch(addr.family())
+  {
+  case AF_INET:
+    return os
+      << ::inet_ntop(AF_INET, &addr.in().sin_addr, sa, sizeof(sa));
+  case AF_INET6:
+    return os
+      << ::inet_ntop(AF_INET6, &addr.in6().sin6_addr, sa, sizeof(sa));
+  default:
+    logexc << "unsupported NetAddr::family() = " << addr.family() << std::endl;
+    return os;
+  }
+}
+
 std::ostream &operator<<(std::ostream &os, const struct NetMask &netmsk)
 {
   const std::string &name = netmsk.name();
