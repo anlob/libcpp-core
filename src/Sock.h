@@ -40,6 +40,7 @@ public:
 
   SockAddr &operator=(const SockAddr &src) { memcpy(&data_, &src.data_, sizeof(data_)); return *this; }
   SockAddr &operator=(const sockaddr &src);
+  SockAddr &operator=(const char *addr);
 
   SockAddr &reset() { sa().sa_family = AF_UNSPEC; return *this; }
   int domain() const { return sa().sa_family; }
@@ -59,6 +60,7 @@ public:
   SockAddrData(): SockAddr(data_) { reset(); }
   SockAddrData(const SockAddr &src): SockAddr(data_) { *this = src; }
   SockAddrData(const sockaddr &src): SockAddr(data_) { *this = src; }
+  SockAddrData(const char *addr): SockAddr(data_) { *this = addr; }
   virtual ~SockAddrData() {}
 
 protected:
@@ -82,6 +84,7 @@ public:
 
   NetAddr &operator=(const NetAddr &src) { memcpy(&data_, &src.data_, sizeof(data_)); return *this; }
   NetAddr &operator=(const sockaddr &src);
+  NetAddr &operator=(const char *addr);
 
   NetAddr &reset() { sa().sa_family = AF_UNSPEC; return *this; }
   int domain() const { return sa().sa_family; }
@@ -126,6 +129,7 @@ public:
   NetAddrData(): NetAddr(data_) { reset(); }
   NetAddrData(const NetAddr &src): NetAddr(data_) { *this = src; }
   NetAddrData(const sockaddr &src): NetAddr(data_) { *this = src; }
+  NetAddrData(const char *addr): NetAddr(data_) { *this = addr; }
   virtual ~NetAddrData() {}
 
 protected:

@@ -44,6 +44,50 @@ SockAddr &SockAddr::operator=(const sockaddr &src)
   return *this;
 }
 
+SockAddr &SockAddr::operator=(const char *addr)
+{
+  const char *srvc;
+  if ((strchr(addr, '/') != nullptr) || ((srvc = strrchr(addr, ':')) == nullptr)) {
+    if (strlen(addr) >= sizeof(un().sun_path))
+      logexc << "SockAddr::operator=(\"" << addr << "\") failed, pathname too long" << std::endl;
+    un().sun_family = AF_LOCAL;
+    strcpy(un().sun_path, addr);
+    return *this;
+  }
+
+  std::string straddr(addr, srvc++);
+  if ((straddr.size() != 0) && (straddr.front() == '[') && (straddr.back() == ']')) {
+    straddr.erase(straddr.begin());
+    straddr.pop_back();
+  } else if (strchr(straddr.c_str(), ':') != nullptr) {
+    logexc << "SockAddr::operator=(\"" << addr << "\") failed, malformed address" << std::endl;
+  }
+  struct addrinfo *aires, hints;
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  errno = 0;
+  int airt = ::getaddrinfo(straddr.c_str(), srvc, &hints, &aires);
+  if (airt != 0) {
+    if (errno == 0)
+      errno = ENOENT;
+    logsxc << "SockAddr::operator=(\"" << addr << "\") failed: " << gai_strerror(airt) << std::endl;
+  }
+  if (aires == nullptr)
+    logexc << "SockAddr::operator=(\"" << addr << "\") failed, no addrinfo available" << std::endl;
+
+  for (struct addrinfo *ai = aires; ai != nullptr; ai = ai->ai_next) switch (ai->ai_family) {
+  case AF_INET:
+  case AF_INET6:
+    *this = *aires->ai_addr;
+    ::freeaddrinfo(aires);
+    return *this;
+  }
+  ::freeaddrinfo(aires);
+  logexc << "SockAddr::operator=(\"" << addr << "\") failed, no suitable addrinfo available" << std::endl;
+  return *this;
+}
+
 
 NetAddr &NetAddr::operator=(const sockaddr &src)
 {
@@ -61,6 +105,16 @@ NetAddr &NetAddr::operator=(const sockaddr &src)
   default:
     logexc << "NetAddr::operator=(const sockaddr &) failed, unsupported address family" << std::endl;
   }
+  return *this;
+}
+
+NetAddr &NetAddr::operator=(const char *addr)
+{
+  if (inet_pton(AF_INET, addr, &in()) == 1)
+    return *this;
+  if (inet_pton(AF_INET6, addr, &in6()) == 1)
+    return *this;
+  logexc << "NetAddr::operator=(\"" << addr << "\") failed, bad address or no suitable addrinfo available" << std::endl;
   return *this;
 }
 
