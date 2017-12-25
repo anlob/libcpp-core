@@ -21,6 +21,30 @@
 using namespace std;
 
 
+SockAddr &SockAddr::operator=(const sockaddr &src)
+{
+  switch(src.sa_family)
+  {
+  case AF_INET:
+    in().sin_family = AF_INET;
+    in().sin_addr.s_addr = ((const struct sockaddr_in &) src).sin_addr.s_addr;
+    break;
+  case AF_INET6:
+    in6().sin6_family = AF_INET6;
+    for (int i = 0; i < 16; ++i)
+      in6().sin6_addr.s6_addr[i] = ((const struct sockaddr_in6 &) src).sin6_addr.s6_addr[i];
+    break;
+  case AF_LOCAL:
+    un().sun_family = AF_LOCAL;
+    strncpy(un().sun_path, ((const struct sockaddr_un &) src).sun_path, sizeof(((const struct sockaddr_un &) src).sun_path));
+    break;
+  default:
+    logexc << "SockAddr::operator=(const sockaddr &) failed, unsupported address family" << std::endl;
+  }
+  return *this;
+}
+
+
 NetAddr &NetAddr::operator=(const sockaddr &src)
 {
   switch(src.sa_family)
@@ -42,10 +66,10 @@ NetAddr &NetAddr::operator=(const sockaddr &src)
 
 bool NetAddr::iszero()
 {
-  if (family() == AF_UNSPEC)
+  if (domain() == AF_UNSPEC)
     logexc << "NetAddr::iszero() failed, this is not initialized" << std::endl;
 
-  switch(family())
+  switch(domain())
   {
   case AF_INET:
     return (in().sin_addr.s_addr == 0UL);
@@ -63,10 +87,10 @@ bool NetAddr::iszero()
 
 NetAddr &NetAddr::setzero()
 {
-  if (family() == AF_UNSPEC)
+  if (domain() == AF_UNSPEC)
     logexc << "NetAddr::setzero() failed, this is not initialized" << std::endl;
 
-  switch(family())
+  switch(domain())
   {
   case AF_INET:
     in().sin_addr.s_addr = 0;
@@ -83,10 +107,10 @@ NetAddr &NetAddr::setzero()
 
 NetAddr &NetAddr::setmsbit(unsigned nbits)
 {
-  if (family() == AF_UNSPEC)
+  if (domain() == AF_UNSPEC)
     logexc << "NetAddr::setmsbit() failed, this is not initialized" << std::endl;
 
-  switch(family())
+  switch(domain())
   {
   case AF_INET:
     if (nbits > 32)
@@ -110,11 +134,11 @@ NetAddr &NetAddr::setmsbit(unsigned nbits)
 
 unsigned NetAddr::getmsbit()
 {
-  if (family() == AF_UNSPEC)
+  if (domain() == AF_UNSPEC)
     logexc << "NetAddr::getmsbit() failed, this is not initialized" << std::endl;
 
   unsigned nbits = 0;
-  switch(family())
+  switch(domain())
   {
   case AF_INET:
     {
@@ -151,11 +175,11 @@ unsigned NetAddr::getmsbit()
 
 NetAddrData NetAddr::operator~()
 {
-  if (family() == AF_UNSPEC)
+  if (domain() == AF_UNSPEC)
     logexc << "NetAddr::operator~() failed, this is not initialized" << std::endl;
 
   NetAddrData rt;
-  switch(rt.sa().sa_family = family())
+  switch(rt.sa().sa_family = domain())
   {
   case AF_INET:
     rt.in().sin_addr.s_addr = ~in().sin_addr.s_addr;
@@ -193,12 +217,12 @@ NetAddrData NetAddr::operator^(const NetAddr &src)
 
 NetAddr &NetAddr::operator&=(const NetAddr &src)
 {
-  if (family() == AF_UNSPEC)
+  if (domain() == AF_UNSPEC)
     logexc << "NetAddr::operator&=() failed, this is not initialized" << std::endl;
-  if (family() != src.family())
+  if (domain() != src.domain())
     logexc << "NetAddr::operator&=() failed, operator value of different address family" << std::endl;
 
-  switch(family())
+  switch(domain())
   {
   case AF_INET:
     in().sin_addr.s_addr &= src.in().sin_addr.s_addr;
@@ -215,12 +239,12 @@ NetAddr &NetAddr::operator&=(const NetAddr &src)
 
 NetAddr &NetAddr::operator|=(const NetAddr &src)
 {
-  if (family() == AF_UNSPEC)
+  if (domain() == AF_UNSPEC)
     logexc << "NetAddr::operator|=() failed, this is not initialized" << std::endl;
-  if (family() != src.family())
+  if (domain() != src.domain())
     logexc << "NetAddr::operator|=() failed, operator value of different address family" << std::endl;
 
-  switch(family())
+  switch(domain())
   {
   case AF_INET:
     in().sin_addr.s_addr |= src.in().sin_addr.s_addr;
@@ -237,12 +261,12 @@ NetAddr &NetAddr::operator|=(const NetAddr &src)
 
 NetAddr &NetAddr::operator^=(const NetAddr &src)
 {
-  if (family() == AF_UNSPEC)
+  if (domain() == AF_UNSPEC)
     logexc << "NetAddr::operator^=() failed, this is not initialized" << std::endl;
-  if (family() != src.family())
+  if (domain() != src.domain())
     logexc << "NetAddr::operator^=() failed, operator value of different address family" << std::endl;
 
-  switch(family())
+  switch(domain())
   {
   case AF_INET:
     in().sin_addr.s_addr ^= src.in().sin_addr.s_addr;
@@ -259,12 +283,12 @@ NetAddr &NetAddr::operator^=(const NetAddr &src)
 
 bool NetAddr::operator<(const NetAddr &cmp) const
 {
-  if (family() == AF_UNSPEC)
+  if (domain() == AF_UNSPEC)
     logexc << "NetAddr::operator<() failed, this is not initialized" << std::endl;
-  if (family() != cmp.family())
+  if (domain() != cmp.domain())
     logexc << "NetAddr::operator<() failed, comparator value of different address family" << std::endl;
 
-  switch(family())
+  switch(domain())
   {
   case AF_INET:
     return ntohl(in().sin_addr.s_addr) < ntohl(cmp.in().sin_addr.s_addr);
@@ -278,12 +302,12 @@ bool NetAddr::operator<(const NetAddr &cmp) const
 
 bool NetAddr::operator>(const NetAddr &cmp) const
 {
-  if (family() == AF_UNSPEC)
+  if (domain() == AF_UNSPEC)
     logexc << "NetAddr::operator>() failed, this is not initialized" << std::endl;
-  if (family() != cmp.family())
+  if (domain() != cmp.domain())
     logexc << "NetAddr::operator>() failed, comparator value of different address family" << std::endl;
 
-  switch(family())
+  switch(domain())
   {
   case AF_INET:
     return ntohl(in().sin_addr.s_addr) > ntohl(cmp.in().sin_addr.s_addr);
@@ -297,12 +321,12 @@ bool NetAddr::operator>(const NetAddr &cmp) const
 
 bool NetAddr::operator==(const NetAddr &cmp) const
 {
-  if (family() == AF_UNSPEC)
+  if (domain() == AF_UNSPEC)
     logexc << "NetAddr::operator==() failed, this is not initialized" << std::endl;
-  if (family() != cmp.family())
+  if (domain() != cmp.domain())
     logexc << "NetAddr::operator==() failed, comparator value of different address family" << std::endl;
 
-  switch(family())
+  switch(domain())
   {
   case AF_INET:
     return ntohl(in().sin_addr.s_addr) == ntohl(cmp.in().sin_addr.s_addr);
@@ -320,7 +344,7 @@ NetMask::NetMask(const char *mask)
   const char *p;
   size_t l;
   if ((p = strchr(mask, '-')) != nullptr) {
-    if (!ScanAddr(mask, p++ - mask, addr_[0]) || !ScanAddr(p, strlen(p), addr_[1]) || (addr_[0].family() != addr_[1].family()))
+    if (!ScanAddr(mask, p++ - mask, addr_[0]) || !ScanAddr(p, strlen(p), addr_[1]) || (addr_[0].domain() != addr_[1].domain()))
       logexc << "NetMask::NetMask() failed, bad address(es)" << std::endl;
     if (addr_[0] > addr_[1])
       logexc << "NetMask::NetMask() failed, bad range" << std::endl;
@@ -349,7 +373,7 @@ bool NetMask::match(const NetAddr &addr)
 
     struct addrinfo *aires, hints;
     memset(&hints, 0, sizeof(hints));
-    hints.ai_family = addr.family();
+    hints.ai_family = addr.domain();
     hints.ai_socktype = SOCK_STREAM;
     int airt = ::getaddrinfo(name_.c_str(), nullptr, &hints, &aires);
     if (airt != 0)
@@ -363,7 +387,7 @@ bool NetMask::match(const NetAddr &addr)
     return rt;
   }
 
-  return ((addr.family() == addr_[0].family()) && (addr >= addr_[0]) && (addr <= addr_[1]));
+  return ((addr.domain() == addr_[0].domain()) && (addr >= addr_[0]) && (addr <= addr_[1]));
 }
 
 
@@ -390,7 +414,7 @@ bool NetMask::ScanAddr(const char *buf, size_t len, NetAddr &addr)
 bool NetMask::ScanCIDR(const char *buf, size_t len, const NetAddr &addr, NetAddr &mask)
 {
   unsigned cidr = 0, x = 0;
-  switch(addr.family())
+  switch(addr.domain())
   {
   case AF_INET:
     x = 32;
@@ -417,7 +441,7 @@ bool NetMask::ScanCIDR(const char *buf, size_t len, const NetAddr &addr, NetAddr
       return false;
   }
 
-  mask.sa().sa_family = addr.family();
+  mask.sa().sa_family = addr.domain();
   mask.setzero();
   mask.setmsbit(cidr);
 
@@ -468,7 +492,7 @@ std::ostream &operator<<(std::ostream &os, const NetAddr &addr)
 {
   char sa[256];
 
-  switch(addr.family())
+  switch(addr.domain())
   {
   case AF_INET:
     return os
@@ -477,7 +501,7 @@ std::ostream &operator<<(std::ostream &os, const NetAddr &addr)
     return os
       << ::inet_ntop(AF_INET6, &addr.in6().sin6_addr, sa, sizeof(sa));
   default:
-    logexc << "unsupported NetAddr::family() = " << addr.family() << std::endl;
+    logexc << "unsupported NetAddr::domain() = " << addr.domain() << std::endl;
     return os;
   }
 }

@@ -38,8 +38,11 @@ public:
   SockAddr(UData &data): data_(data) {}
   virtual ~SockAddr() {}
 
+  SockAddr &operator=(const SockAddr &src) { memcpy(&data_, &src.data_, sizeof(data_)); return *this; }
+  SockAddr &operator=(const sockaddr &src);
+
   SockAddr &reset() { sa().sa_family = AF_UNSPEC; return *this; }
-  int family() const { return sa().sa_family; }
+  int domain() const { return sa().sa_family; }
 
   struct sockaddr &sa() const { return data_.sa; }
   struct sockaddr_un &un() const { return data_.un; }
@@ -54,6 +57,8 @@ class SockAddrData: public SockAddr
 {
 public:
   SockAddrData(): SockAddr(data_) { reset(); }
+  SockAddrData(const SockAddr &src): SockAddr(data_) { *this = src; }
+  SockAddrData(const sockaddr &src): SockAddr(data_) { *this = src; }
   virtual ~SockAddrData() {}
 
 protected:
@@ -79,7 +84,7 @@ public:
   NetAddr &operator=(const sockaddr &src);
 
   NetAddr &reset() { sa().sa_family = AF_UNSPEC; return *this; }
-  int family() const { return sa().sa_family; }
+  int domain() const { return sa().sa_family; }
 
   struct sockaddr &sa() const { return data_.sa; }
   struct sockaddr_in &in() const { return data_.in; }
