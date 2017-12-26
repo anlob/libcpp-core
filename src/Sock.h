@@ -36,6 +36,7 @@ public:
   };
 
   SockAddr(UData &data): data_(data) {}
+  SockAddr(const SockAddr &) = delete;
   virtual ~SockAddr() {}
 
   SockAddr &operator=(const SockAddr &src) { memcpy(&data_, &src.data_, sizeof(data_)); return *this; }
@@ -58,10 +59,13 @@ class SockAddrData: public SockAddr
 {
 public:
   SockAddrData(): SockAddr(data_) { reset(); }
+  SockAddrData(const SockAddrData &src): SockAddr(data_) { *this = src; }
   SockAddrData(const SockAddr &src): SockAddr(data_) { SockAddr::operator=(src); }
   SockAddrData(const sockaddr &src): SockAddr(data_) { SockAddr::operator=(src); }
   SockAddrData(const char *addr): SockAddr(data_) { SockAddr::operator=(addr); }
   virtual ~SockAddrData() {}
+
+  SockAddrData &operator=(const SockAddrData &src) { SockAddr::operator=((const SockAddr &) src); return *this; }
 
 protected:
   UData data_;
@@ -80,6 +84,7 @@ public:
   };
 
   NetAddr(UData &data): data_(data) {}
+  NetAddr(const NetAddr &) = delete;
   virtual ~NetAddr() {}
 
   NetAddr &operator=(const NetAddr &src) { memcpy(&data_, &src.data_, sizeof(data_)); return *this; }
@@ -127,10 +132,13 @@ class NetAddrData: public NetAddr
 {
 public:
   NetAddrData(): NetAddr(data_) { reset(); }
+  NetAddrData(const NetAddrData &src): NetAddr(data_) { *this = src; }
   NetAddrData(const NetAddr &src): NetAddr(data_) { NetAddr::operator=(src); }
   NetAddrData(const sockaddr &src): NetAddr(data_) { NetAddr::operator=(src); }
   NetAddrData(const char *addr): NetAddr(data_) { NetAddr::operator=(addr); }
   virtual ~NetAddrData() {}
+
+  NetAddrData &operator=(const NetAddrData &src) { NetAddr::operator=((const NetAddr &) src); return *this; }
 
 protected:
   UData data_;

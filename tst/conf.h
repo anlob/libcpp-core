@@ -31,6 +31,8 @@
 #define _TEST_SOCK_SHUT     0
 #define _TEST_SOCK_LISTEN   0
 #define _TEST_SOCK_ADDRSTR  0
+#define _TEST_SOCK_NETADDR  0
+#define _TEST_SOCK_NETMASK  0
 
 // enable particular pipe test
 #define _TEST_PIPE_IO       0

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <istream>
 #include <ostream>
+#include <sstream>
 #include <iosfwd>
 #include <string>
 #include <cstring>
@@ -71,5 +72,58 @@ void test_sock_addrstr()
   s = SockFN::AddrStr((struct sockaddr *) &sin6);
   if (s != "[::1]:1234")
     logexc << "SockFN::AddrStr() failed to convert [::1]:1234" << endl;
+}
+#endif
+
+#if (_TEST_ALL == 1) || (_TEST_GRP_SOCK == 1) || (_TEST_SOCK_NETADDR == 1)
+void test_sock_netaddr()
+{
+  NetAddrData a1 = "192.168.77.0";
+  NetAddrData a2 = "192.168.77.255";
+  NetAddrData ar = ((const NetAddr &) a1);
+  if (ar != NetAddrData("192.168.77.0"))
+    logexc << "NetAddr::operator=(192.168.77.0) failed to assign" << endl;
+  ar ^= ((const NetAddr &) a2);   // address range bits
+  if (ar != NetAddrData("0.0.0.255"))
+    logexc << "NetAddr::operator^=(192.168.77.0, 192.168.77.255) failed to compute" << endl;
+  NetAddrData nm = ~ar;           // invers => netmask
+  if (nm != NetAddrData("255.255.255.0"))
+    logexc << "NetAddr::operator~(0.0.0.255) failed to compute" << endl;
+  unsigned cidr = nm.getmsbit();  // CIDR netmask bits
+  if (cidr != 24)
+    logexc << "NetAddr::getmsbit(255.255.255.0) failed to compute" << endl;
+  NetAddrData r1 = a1 & ar;
+  if (r1 != NetAddrData("0.0.0.0"))
+    logexc << "NetAddr::operator&(192.168.77.0, 0.0.0.255) failed to compute" << endl;
+  NetAddrData r2 = a2 & ar;
+  if (r2 != NetAddrData("0.0.0.255"))
+    logexc << "NetAddr::operator&(192.168.77.255, 0.0.0.255) failed to compute" << endl;
+  if (!r1.iszero())
+    logexc << "NetAddr::iszero(0.0.0.0) failed to compute" << endl;
+  if (r2.iszero())
+    logexc << "NetAddr::iszero(0.0.0.255) failed to compute" << endl;
+}
+#endif
+
+#if (_TEST_ALL == 1) || (_TEST_GRP_SOCK == 1) || (_TEST_SOCK_NETMASK == 1)
+void test_sock_netmask()
+{
+  NetMask nmask;
+
+  nmask = "192.168.77.0/24";
+  if (!nmask.valid())
+    logexc << "NetMask not valid after assignment (192.168.77.0/24)" << endl;
+  if (!nmask.match(NetAddrData("192.168.77.255")))
+    logexc << "NetMask did not match 192.168.77.255" << endl;
+  if (!nmask.match(NetAddrData("192.168.77.0")))
+    logexc << "NetMask did not match 192.168.77.0" << endl;
+  if (nmask.match(NetAddrData("192.168.78.0")))
+    logexc << "NetMask erroneously matched 192.168.78.0" << endl;
+  if (nmask.match(NetAddrData("192.168.76.255")))
+    logexc << "NetMask erroneously matched 192.168.76.255" << endl;
+  stringstream sfd;
+  sfd << nmask;
+  if (sfd.str() != "192.168.77.0/24")
+    logexc << "wrong output of NetMask stream operator for 192.168.77.0/24" << endl;
 }
 #endif
