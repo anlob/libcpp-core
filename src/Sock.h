@@ -140,8 +140,13 @@ protected:
 class NetMask
 {
 public:
-  NetMask(const char *mask);
+  NetMask() { reset(); }
+  NetMask(const char *mask) { *this = mask; }
   virtual ~NetMask() {}
+
+  NetMask &operator=(const char *mask);
+  NetMask &reset();
+  bool valid() const;
 
   const std::string &name() const { return name_; }
   const NetAddrData &addr(int i) const { return addr_[i]; }

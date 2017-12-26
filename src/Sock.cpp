@@ -393,7 +393,7 @@ bool NetAddr::operator==(const NetAddr &cmp) const
 }
 
 
-NetMask::NetMask(const char *mask)
+NetMask &NetMask::operator=(const char *mask)
 {
   const char *p;
   size_t l;
@@ -402,6 +402,7 @@ NetMask::NetMask(const char *mask)
       logexc << "NetMask::NetMask() failed, bad address(es)" << std::endl;
     if (addr_[0] > addr_[1])
       logexc << "NetMask::NetMask() failed, bad range" << std::endl;
+    name_.clear();
   } else if ((p = strchr(mask, '/')) != nullptr) {
     if (!ScanAddr(mask, p++ - mask, addr_[0]))
       logexc << "NetMask::NetMask() failed, bad address" << std::endl;
@@ -411,12 +412,32 @@ NetMask::NetMask(const char *mask)
       logexc << "NetMask::NetMask() failed, address does not fit in mask" << std::endl;
     addr_[1] =  ~addr_[1];
     addr_[1] |= addr_[0];
+    name_.clear();
   } else if (ScanAddr(mask, l = strlen(mask), addr_[0])) {
     addr_[1] = addr_[0];
+    name_.clear();
   } else {
     if (!ScanName(mask, l, name_))
       logexc << "NetMask::NetMask() failed, empty string" << std::endl;
+    addr_[0].reset();
+    addr_[1].reset();
   }
+  return *this;
+}
+
+NetMask &NetMask::reset()
+{
+  name_.clear();
+  addr_[0].reset();
+  addr_[1].reset();
+  return *this;
+}
+
+bool NetMask::valid() const
+{
+  return !name().empty()
+    ? ((addr_[0].domain() == AF_UNSPEC) && (addr_[1].domain() == AF_UNSPEC))
+    : ((addr_[0].domain() != AF_UNSPEC) && (addr_[1].domain() ==  addr_[0].domain()) && (addr_[1] >= addr_[0]));
 }
 
 bool NetMask::match(const NetAddr &addr)
