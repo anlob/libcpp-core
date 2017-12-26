@@ -58,9 +58,9 @@ class SockAddrData: public SockAddr
 {
 public:
   SockAddrData(): SockAddr(data_) { reset(); }
-  SockAddrData(const SockAddr &src): SockAddr(data_) { *this = src; }
-  SockAddrData(const sockaddr &src): SockAddr(data_) { *this = src; }
-  SockAddrData(const char *addr): SockAddr(data_) { *this = addr; }
+  SockAddrData(const SockAddr &src): SockAddr(data_) { SockAddr::operator=(src); }
+  SockAddrData(const sockaddr &src): SockAddr(data_) { SockAddr::operator=(src); }
+  SockAddrData(const char *addr): SockAddr(data_) { SockAddr::operator=(addr); }
   virtual ~SockAddrData() {}
 
 protected:
@@ -127,9 +127,9 @@ class NetAddrData: public NetAddr
 {
 public:
   NetAddrData(): NetAddr(data_) { reset(); }
-  NetAddrData(const NetAddr &src): NetAddr(data_) { *this = src; }
-  NetAddrData(const sockaddr &src): NetAddr(data_) { *this = src; }
-  NetAddrData(const char *addr): NetAddr(data_) { *this = addr; }
+  NetAddrData(const NetAddr &src): NetAddr(data_) { NetAddr::operator=(src); }
+  NetAddrData(const sockaddr &src): NetAddr(data_) { NetAddr::operator=(src); }
+  NetAddrData(const char *addr): NetAddr(data_) { NetAddr::operator=(addr); }
   virtual ~NetAddrData() {}
 
 protected:
@@ -151,7 +151,7 @@ public:
   const std::string &name() const { return name_; }
   const NetAddrData &addr(int i) const { return addr_[i]; }
 
-  bool match(const NetAddr &addr);
+  bool match(const NetAddr &addr) const;
 
 protected:
   std::string name_;
@@ -167,7 +167,7 @@ private:
 std::ostream &operator<<(std::ostream &os, const struct sockaddr &addr);
 inline std::ostream &operator<<(std::ostream &os, const SockAddr &addr) { return os << addr.sa(); }
 std::ostream &operator<<(std::ostream &os, const NetAddr &addr);
-std::ostream &operator<<(std::ostream &os, const struct NetMask &netmsk);
+std::ostream &operator<<(std::ostream &os, const NetMask &netmsk);
 
 
 class SockFN

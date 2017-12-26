@@ -110,10 +110,10 @@ NetAddr &NetAddr::operator=(const sockaddr &src)
 
 NetAddr &NetAddr::operator=(const char *addr)
 {
-  if (inet_pton(AF_INET, addr, &in()) == 1)
-    return *this;
-  if (inet_pton(AF_INET6, addr, &in6()) == 1)
-    return *this;
+  if (inet_pton(AF_INET, addr, &in().sin_addr) == 1)
+    return in().sin_family = AF_INET, *this;
+  if (inet_pton(AF_INET6, addr, &in6().sin6_addr) == 1)
+    return in6().sin6_family = AF_INET6, *this;
   logexc << "NetAddr::operator=(\"" << addr << "\") failed, bad address or no suitable addrinfo available" << std::endl;
   return *this;
 }
@@ -440,7 +440,7 @@ bool NetMask::valid() const
     : ((addr_[0].domain() != AF_UNSPEC) && (addr_[1].domain() ==  addr_[0].domain()) && (addr_[1] >= addr_[0]));
 }
 
-bool NetMask::match(const NetAddr &addr)
+bool NetMask::match(const NetAddr &addr) const
 {
   if (!name_.empty()) {
     if (name_ == "*")
@@ -470,18 +470,18 @@ bool NetMask::ScanAddr(const char *buf, size_t len, NetAddr &addr)
 {
   const char *q = buf;
   const char *p = buf + len;
-  while ((q > p) && isspace(*q))
+  while ((q < p) && isspace(*q))
     ++q;
-  while ((q > p) && isspace(p[-1]))
+  while ((p > q) && isspace(p[-1]))
     --p;
   size_t n = p - q;
   char *bf = (char *) memcpy(alloca(n + 1), q, n);
   bf[n] = '\0';
 
-  if (inet_pton(AF_INET, bf, &addr.in()) == 1)
-    return true;
-  if (inet_pton(AF_INET6, bf, &addr.in6()) == 1)
-    return true;
+  if (inet_pton(AF_INET, bf, &addr.in().sin_addr) == 1)
+    return addr.in().sin_family = AF_INET, true;
+  if (inet_pton(AF_INET6, bf, &addr.in6().sin6_addr) == 1)
+    return addr.in6().sin6_family = AF_INET6, true;
   addr.reset();
   return false;
 }
@@ -503,11 +503,11 @@ bool NetMask::ScanCIDR(const char *buf, size_t len, const NetAddr &addr, NetAddr
 
   const char *q = buf;
   const char *p = buf + len;
-  while ((q > p) && isspace(*q))
+  while ((q < p) && isspace(*q))
     ++q;
-  while ((q > p) && isspace(p[-1]))
+  while ((p > q) && isspace(p[-1]))
     --p;
-  while (q > p) {
+  while (q < p) {
     if (!isdigit(*q))
       return false;
     cidr *= 10;
@@ -527,9 +527,9 @@ bool NetMask::ScanName(const char *buf, size_t len, std::string &name)
 {
   const char *q = buf;
   const char *p = buf + len;
-  while ((q > p) && isspace(*q))
+  while ((q < p) && isspace(*q))
     ++q;
-  while ((q > p) && isspace(p[-1]))
+  while ((p > q) && isspace(p[-1]))
     --p;
   size_t n = p - q;
   name = std::string(q, n);
@@ -581,7 +581,7 @@ std::ostream &operator<<(std::ostream &os, const NetAddr &addr)
   }
 }
 
-std::ostream &operator<<(std::ostream &os, const struct NetMask &netmsk)
+std::ostream &operator<<(std::ostream &os, const NetMask &netmsk)
 {
   const std::string &name = netmsk.name();
   if (!name.empty())
