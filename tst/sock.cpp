@@ -126,9 +126,9 @@ void test_sock_netmask()
   if (sfd.str() != "192.168.77.0/24")
     logexc << "wrong output of NetMask stream operator for 192.168.77.0/24" << endl;
 
-  nmask = "fd00::/64";
+  nmask = "fd00::/61";
   if (!nmask.valid())
-    logexc << "NetMask not valid after assignment (fd00::/64)" << endl;
+    logexc << "NetMask not valid after assignment (fd00::/61)" << endl;
   if (!nmask.match(NetAddrData("fd00::21cb:3dad:2e8c:3027")))
     logexc << "NetMask did not match fd00::21cb:3dad:2e8c:3027" << endl;
   sfd.clear();
@@ -136,7 +136,7 @@ void test_sock_netmask()
   sfd.seekg(0);
   sfd.str(string());
   sfd << nmask;
-  if (sfd.str() != "fd00::/64")
-    logexc << "wrong output of NetMask stream operator for fd00::/64" << endl;
+  if (sfd.str() != "fd00::/61")
+    logexc << "wrong output of NetMask stream operator for fd00::/61" << endl;
 }
 #endif
