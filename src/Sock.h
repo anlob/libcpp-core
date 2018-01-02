@@ -149,9 +149,11 @@ class NetMask
 {
 public:
   NetMask() { reset(); }
+  NetMask(const NetMask &src) { *this = src; }
   NetMask(const char *mask) { *this = mask; }
   virtual ~NetMask() {}
 
+  NetMask &operator=(const NetMask &src);
   NetMask &operator=(const char *mask);
   NetMask &reset();
   bool valid() const;

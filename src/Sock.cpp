@@ -393,6 +393,14 @@ bool NetAddr::operator==(const NetAddr &cmp) const
 }
 
 
+NetMask &NetMask::operator=(const NetMask &src)
+{
+  name_ = src.name_;
+  addr_[0] = src.addr_[0];
+  addr_[1] = src.addr_[1];
+  return *this;
+}
+
 NetMask &NetMask::operator=(const char *mask)
 {
   const char *p;
