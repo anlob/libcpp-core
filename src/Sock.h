@@ -39,6 +39,8 @@ public:
   SockAddr(const SockAddr &) = delete;
   virtual ~SockAddr() {}
 
+  const char *svc() const { return !svc_.empty() ? svc_.c_str() : nullptr; }
+  SockAddr &svc(const char *dflt) { if (dflt != nullptr) svc_ = dflt; else svc_.clear(); return *this; }
   SockAddr &operator=(const SockAddr &src) { memcpy(&data_, &src.data_, sizeof(data_)); return *this; }
   SockAddr &operator=(const sockaddr &src);
   SockAddr &operator=(const char *addr);
@@ -52,6 +54,7 @@ public:
   struct sockaddr_in6 &in6() const { return data_.in6; }
 
 protected:
+  std::string svc_;
   UData &data_;
 };
 

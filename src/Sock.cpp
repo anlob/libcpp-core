@@ -47,7 +47,7 @@ SockAddr &SockAddr::operator=(const sockaddr &src)
 SockAddr &SockAddr::operator=(const char *addr)
 {
   const char *srvc;
-  if ((strchr(addr, '/') != nullptr) || ((srvc = strrchr(addr, ':')) == nullptr)) {
+  if ((strchr(addr, '/') != nullptr) || (((srvc = strrchr(addr, ':')) == nullptr) && svc_.empty())) {
     if (strlen(addr) >= sizeof(un().sun_path))
       logexc << "SockAddr::operator=(\"" << addr << "\") failed, pathname too long" << std::endl;
     un().sun_family = AF_LOCAL;
@@ -55,12 +55,17 @@ SockAddr &SockAddr::operator=(const char *addr)
     return *this;
   }
 
-  std::string straddr(addr, srvc++);
-  if ((straddr.size() != 0) && (straddr.front() == '[') && (straddr.back() == ']')) {
-    straddr.erase(straddr.begin());
-    straddr.pop_back();
-  } else if (strchr(straddr.c_str(), ':') != nullptr) {
-    logexc << "SockAddr::operator=(\"" << addr << "\") failed, malformed address" << std::endl;
+  std::string straddr(addr, (srvc != nullptr) ? srvc : (const char *) (addr + strlen(addr)));
+  if (srvc != nullptr) {
+    ++srvc;
+    if ((straddr.size() != 0) && (straddr.front() == '[') && (straddr.back() == ']')) {
+      straddr.erase(straddr.begin());
+      straddr.pop_back();
+    } else if (strchr(straddr.c_str(), ':') != nullptr) {
+      logexc << "SockAddr::operator=(\"" << addr << "\") failed, malformed address" << std::endl;
+    }
+  } else {
+    srvc = svc_.c_str();
   }
   struct addrinfo *aires, hints;
   memset(&hints, 0, sizeof(hints));
