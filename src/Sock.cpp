@@ -110,11 +110,38 @@ NetAddr &NetAddr::operator=(const sockaddr &src)
 
 NetAddr &NetAddr::operator=(const char *addr)
 {
-  if (inet_pton(AF_INET, addr, &in().sin_addr) == 1)
-    return in().sin_family = AF_INET, *this;
-  if (inet_pton(AF_INET6, addr, &in6().sin6_addr) == 1)
-    return in6().sin6_family = AF_INET6, *this;
-  logexc << "NetAddr::operator=(\"" << addr << "\") failed, bad address or no suitable addrinfo available" << std::endl;
+  if (!dns_) {
+    if (inet_pton(AF_INET, addr, &in().sin_addr) == 1)
+      return in().sin_family = AF_INET, *this;
+    if (inet_pton(AF_INET6, addr, &in6().sin6_addr) == 1)
+      return in6().sin6_family = AF_INET6, *this;
+    logexc << "NetAddr::operator=(\"" << addr << "\") failed, bad address" << std::endl;
+    return *this;
+  }
+
+  struct addrinfo *aires, hints;
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  errno = 0;
+  int airt = ::getaddrinfo(addr, NULL, &hints, &aires);
+  if (airt != 0) {
+    if (errno == 0)
+      errno = ENOENT;
+    logsxc << "NetAddr::operator=(\"" << addr << "\") failed: " << gai_strerror(airt) << std::endl;
+  }
+  if (aires == nullptr)
+    logexc << "NetAddr::operator=(\"" << addr << "\") failed, no addrinfo available" << std::endl;
+
+  for (struct addrinfo *ai = aires; ai != nullptr; ai = ai->ai_next) switch (ai->ai_family) {
+  case AF_INET:
+  case AF_INET6:
+    *this = *aires->ai_addr;
+    ::freeaddrinfo(aires);
+    return *this;
+  }
+  ::freeaddrinfo(aires);
+  logexc << "NetAddr::operator=(\"" << addr << "\") failed, no suitable addrinfo available" << std::endl;
   return *this;
 }
 

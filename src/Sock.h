@@ -83,7 +83,7 @@ public:
     struct sockaddr_in6 in6;
   };
 
-  NetAddr(UData &data): data_(data) {}
+  NetAddr(UData &data): dns_(false), data_(data) {}
   NetAddr(const NetAddr &) = delete;
   virtual ~NetAddr() {}
 
@@ -91,6 +91,8 @@ public:
   NetAddr &operator=(const sockaddr &src);
   NetAddr &operator=(const char *addr);
 
+  bool dns() const { return dns_; }
+  NetAddr &dns(bool newstate) { dns_ = newstate; return *this; }
   NetAddr &reset() { sa().sa_family = AF_UNSPEC; return *this; }
   int domain() const { return sa().sa_family; }
 
@@ -125,6 +127,7 @@ public:
   bool operator!=(const sockaddr &cmp) const { return operator!=(NetAddr((UData &) cmp)); }
 
 protected:
+  bool dns_;
   UData &data_;
 };
 
