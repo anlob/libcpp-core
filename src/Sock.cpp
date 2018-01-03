@@ -72,7 +72,7 @@ SockAddr &SockAddr::operator=(const char *addr)
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
   errno = 0;
-  int airt = ::getaddrinfo(straddr.c_str(), srvc, &hints, &aires);
+  int airt = ::getaddrinfo(straddr.c_str(), (strcmp(srvc, "*") != 0) ? srvc : (srvc = nullptr), &hints, &aires);
   if (airt != 0) {
     if (errno == 0)
       errno = ENOENT;
@@ -83,8 +83,15 @@ SockAddr &SockAddr::operator=(const char *addr)
 
   for (struct addrinfo *ai = aires; ai != nullptr; ai = ai->ai_next) switch (ai->ai_family) {
   case AF_INET:
+    *this = *aires->ai_addr;
+    if (srvc == nullptr)
+      in().sin_port = 0;
+    ::freeaddrinfo(aires);
+    return *this;
   case AF_INET6:
     *this = *aires->ai_addr;
+    if (srvc == nullptr)
+      in6().sin6_port = 0;
     ::freeaddrinfo(aires);
     return *this;
   }
