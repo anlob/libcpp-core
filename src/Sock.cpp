@@ -62,7 +62,12 @@ SockAddr &SockAddr::operator=(const char *addr)
       straddr.erase(straddr.begin());
       straddr.pop_back();
     } else if (strchr(straddr.c_str(), ':') != nullptr) {
-      logexc << "SockAddr::operator=(\"" << addr << "\") failed, malformed address" << std::endl;
+      if (!svc_.empty()) {
+        straddr = addr;
+        srvc = svc_.c_str();
+      } else {
+        logexc << "SockAddr::operator=(\"" << addr << "\") failed, malformed address" << std::endl;
+      }
     }
   } else {
     srvc = svc_.c_str();
@@ -763,10 +768,10 @@ FD SockFN::Connect(struct sockaddr *addr)
   }
 }
 
-FD SockFN::Connect(const char *addr)
+FD SockFN::Connect(const char *addr, const char *dfltsvc /* = nullptr */)
 {
   const char *srvc;
-  if ((strchr(addr, '/') != nullptr) || ((srvc = strrchr(addr, ':')) == nullptr)) {
+  if ((strchr(addr, '/') != nullptr) || (((srvc = strrchr(addr, ':')) == nullptr) && (dfltsvc == nullptr))) {
     struct sockaddr_un saddr;
     if (strlen(addr) >= sizeof(saddr.sun_path))
       logexc << "failed to connect \"" << addr << "\", pathname too long" << std::endl;
@@ -775,12 +780,22 @@ FD SockFN::Connect(const char *addr)
     return Connect((struct sockaddr *) &saddr);
   }
 
-  std::string straddr(addr, srvc++);
-  if ((straddr.size() != 0) && (straddr.front() == '[') && (straddr.back() == ']')) {
-    straddr.erase(straddr.begin());
-    straddr.pop_back();
-  } else if (strchr(straddr.c_str(), ':') != nullptr) {
-    logexc << "failed to connect \"" << addr << "\", malformed address" << std::endl;
+  std::string straddr(addr, (srvc != nullptr) ? srvc : (const char *) (addr + strlen(addr)));
+  if (srvc != nullptr) {
+    ++srvc;
+    if ((straddr.size() != 0) && (straddr.front() == '[') && (straddr.back() == ']')) {
+      straddr.erase(straddr.begin());
+      straddr.pop_back();
+    } else if (strchr(straddr.c_str(), ':') != nullptr) {
+      if (dfltsvc != nullptr) {
+        straddr = addr;
+        srvc = dfltsvc;
+      } else {
+        logexc << "SockFN::Connect(\"" << addr << "\") failed, malformed address" << std::endl;
+      }
+    }
+  } else {
+    srvc = dfltsvc;
   }
   struct addrinfo *aires, hints;
   memset(&hints, 0, sizeof(hints));
@@ -846,10 +861,10 @@ FD SockFN::Listen(struct sockaddr *addr)
   return sfd;
 }
 
-FD SockFN::Listen(const char *addr)
+FD SockFN::Listen(const char *addr, const char *dfltsvc /* = nullptr */)
 {
   const char *srvc;
-  if ((strchr(addr, '/') != nullptr) || ((srvc = strrchr(addr, ':')) == nullptr)) {
+  if ((strchr(addr, '/') != nullptr) || (((srvc = strrchr(addr, ':')) == nullptr) && (dfltsvc == nullptr))) {
     struct sockaddr_un saddr;
     if (strlen(addr) >= sizeof(saddr.sun_path))
       logexc << "failed to listen on \"" << addr << "\", pathname too long" << std::endl;
@@ -858,12 +873,22 @@ FD SockFN::Listen(const char *addr)
     return Listen((struct sockaddr *) &saddr);
   }
 
-  std::string straddr(addr, srvc++);
-  if ((straddr.size() != 0) && (straddr.front() == '[') && (straddr.back() == ']')) {
-    straddr.erase(straddr.begin());
-    straddr.pop_back();
-  } else if (strchr(straddr.c_str(), ':') != nullptr) {
-    logexc << "failed to listen on \"" << addr << "\", malformed address" << std::endl;
+  std::string straddr(addr, (srvc != nullptr) ? srvc : (const char *) (addr + strlen(addr)));
+  if (srvc != nullptr) {
+    ++srvc;
+    if ((straddr.size() != 0) && (straddr.front() == '[') && (straddr.back() == ']')) {
+      straddr.erase(straddr.begin());
+      straddr.pop_back();
+    } else if (strchr(straddr.c_str(), ':') != nullptr) {
+      if (dfltsvc != nullptr) {
+        straddr = addr;
+        srvc = dfltsvc;
+      } else {
+        logexc << "SockFN::Listen(\"" << addr << "\") failed, malformed address" << std::endl;
+      }
+    }
+  } else {
+    srvc = dfltsvc;
   }
   struct addrinfo *aires, hints;
   memset(&hints, 0, sizeof(hints));

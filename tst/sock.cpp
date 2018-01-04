@@ -17,6 +17,7 @@ using namespace std;
 void test_sock_ipv6conn()
 {
   SockFN::Connect("[::1]:ssh");
+  SockFN::Connect("::1", "ssh");
 }
 #endif
 

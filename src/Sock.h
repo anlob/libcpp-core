@@ -196,9 +196,9 @@ public:
   static int AddrDomain(struct sockaddr *addr);
   static std::string AddrStr(struct sockaddr *addr);
   static FD Connect(struct sockaddr *addr);
-  static FD Connect(const char *addr);
+  static FD Connect(const char *addr, const char *dfltsvc = nullptr);
   static FD Listen(struct sockaddr *addr);
-  static FD Listen(const char *addr);
+  static FD Listen(const char *addr, const char *dfltsvc = nullptr);
 };
 
 
@@ -232,7 +232,7 @@ public:
   BasicSock(int sockfd);
   BasicSock(FD &&sfd): BasicSock((int) sfd) { sfd.Detach(); }
   BasicSock(struct sockaddr *addr);
-  BasicSock(const char *addr);
+  BasicSock(const char *addr, const char *dfltsvc = nullptr);
   virtual ~BasicSock();
 
   virtual bool rdshut() { return in_ == &eofr_; }
@@ -299,9 +299,9 @@ void BasicSock<_E, _Tr>::_BasicSock(struct sockaddr *addr)
 }
 
 template<typename _E, typename _Tr>
-BasicSock<_E, _Tr>::BasicSock(const char *addr): eofr_(nullptr), eofw_(nullptr), in_(nullptr), out_(nullptr)
+BasicSock<_E, _Tr>::BasicSock(const char *addr, const char *dfltsvc /* = nullptr */): eofr_(nullptr), eofw_(nullptr), in_(nullptr), out_(nullptr)
 {
-  FD sfd = Connect(addr);
+  FD sfd = Connect(addr, dfltsvc);
   _BasicSock((int) sfd);
   sfd.Detach();
 }
