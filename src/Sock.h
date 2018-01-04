@@ -47,6 +47,8 @@ public:
 
   SockAddr &reset() { sa().sa_family = AF_UNSPEC; return *this; }
   int domain() const { return sa().sa_family; }
+  unsigned port() const;
+  SockAddr &port(unsigned port);
 
   struct sockaddr &sa() const { return data_.sa; }
   struct sockaddr_un &un() const { return data_.un; }
@@ -54,7 +56,7 @@ public:
   struct sockaddr_in6 &in6() const { return data_.in6; }
 
 protected:
-  std::string svc_;
+  std::string svc_; ///< default service
   UData &data_;
 };
 

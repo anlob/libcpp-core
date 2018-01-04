@@ -100,6 +100,42 @@ SockAddr &SockAddr::operator=(const char *addr)
   return *this;
 }
 
+unsigned SockAddr::port() const
+{
+  if (domain() == AF_UNSPEC)
+    logexc << "SockAddr::port() failed, this is not initialized" << std::endl;
+
+  switch(domain())
+  {
+  case AF_INET:
+    return ntohs(in().sin_port);
+  case AF_INET6:
+    return ntohs(in6().sin6_port);
+  default:
+    logexc << "SockAddr::port() failed, unsupported address family" << std::endl;
+    return 0;
+  }
+}
+
+SockAddr &SockAddr::port(unsigned port)
+{
+  if (domain() == AF_UNSPEC)
+    logexc << "SockAddr::port(" << port << ") failed, this is not initialized" << std::endl;
+
+  switch(domain())
+  {
+  case AF_INET:
+    in().sin_port = htons(port);
+    break;
+  case AF_INET6:
+    in6().sin6_port = htons(port);
+    break;
+  default:
+    logexc << "SockAddr::port(" << port << ") failed, unsupported address family" << std::endl;
+  }
+  return *this;
+}
+
 
 NetAddr &NetAddr::operator=(const sockaddr &src)
 {
