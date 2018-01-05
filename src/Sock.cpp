@@ -86,13 +86,15 @@ SockAddr &SockAddr::operator=(const char *addr)
   if (aires == nullptr)
     logexc << "SockAddr::operator=(\"" << addr << "\") failed, no addrinfo available" << std::endl;
 
-  for (struct addrinfo *ai = aires; ai != nullptr; ai = ai->ai_next) switch (ai->ai_family) {
+  for (struct addrinfo *ai = aires; ai != nullptr; ai = ai->ai_next) switch (ai->ai_family) { // AF_INET takes precedence
   case AF_INET:
     *this = *aires->ai_addr;
     if (srvc == nullptr)
       in().sin_port = 0;
     ::freeaddrinfo(aires);
     return *this;
+  }
+  for (struct addrinfo *ai = aires; ai != nullptr; ai = ai->ai_next) switch (ai->ai_family) {
   case AF_INET6:
     *this = *aires->ai_addr;
     if (srvc == nullptr)
@@ -186,8 +188,13 @@ NetAddr &NetAddr::operator=(const char *addr)
   if (aires == nullptr)
     logexc << "NetAddr::operator=(\"" << addr << "\") failed, no addrinfo available" << std::endl;
 
-  for (struct addrinfo *ai = aires; ai != nullptr; ai = ai->ai_next) switch (ai->ai_family) {
+  for (struct addrinfo *ai = aires; ai != nullptr; ai = ai->ai_next) switch (ai->ai_family) { // AF_INET takes precedence
   case AF_INET:
+    *this = *aires->ai_addr;
+    ::freeaddrinfo(aires);
+    return *this;
+  }
+  for (struct addrinfo *ai = aires; ai != nullptr; ai = ai->ai_next) switch (ai->ai_family) {
   case AF_INET6:
     *this = *aires->ai_addr;
     ::freeaddrinfo(aires);
@@ -905,6 +912,17 @@ FD SockFN::Listen(const char *addr, const char *dfltsvc /* = nullptr */)
     logexc << "failed to listen on \"" << addr << "\", no addrinfo available" << std::endl;
 
   FD sfd;
+  for (struct addrinfo *ai = aires; ai != nullptr; ai = ai->ai_next) switch (ai->ai_family) { // AF_INET takes precedence
+  case AF_INET:
+    try {
+      sfd = Listen(ai->ai_addr);
+    } catch(...) {
+      ::freeaddrinfo(aires);
+      throw;
+    }
+    ::freeaddrinfo(aires);
+    return sfd;
+  }
   try {
     sfd = Listen(aires->ai_addr);
   } catch(...) {
