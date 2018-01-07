@@ -246,6 +246,25 @@ NetAddr &NetAddr::setzero()
   return *this;
 }
 
+NetAddr &NetAddr::setzero(int domain)
+{
+  switch(domain)
+  {
+  case AF_INET:
+    in().sin_family = domain;
+    in().sin_addr.s_addr = 0;
+    break;
+  case AF_INET6:
+    in6().sin6_family = domain;
+    for (unsigned x = 0; x < 16; ++x)
+      in6().sin6_addr.s6_addr[x] = 0;
+    break;
+  default:
+    logexc << "NetAddr::setzero() failed, unsupported domain" << std::endl;
+  }
+  return *this;
+}
+
 NetAddr &NetAddr::setmsbit(unsigned nbits)
 {
   if (domain() == AF_UNSPEC)
@@ -477,6 +496,11 @@ bool NetAddr::operator==(const NetAddr &cmp) const
     logexc << "NetAddr::operator==() failed, unsupported address family" << std::endl;
     return false;
   }
+}
+
+NetAddrData::NetAddrData(): NetAddr(*((UData *) memset(&data_, 0, sizeof(data_))))
+{
+  reset();
 }
 
 

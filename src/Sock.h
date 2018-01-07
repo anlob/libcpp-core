@@ -107,6 +107,7 @@ public:
 
   bool iszero();
   NetAddr &setzero();
+  NetAddr &setzero(int domain);
   NetAddr &setmsbit(unsigned nbits);
   unsigned getmsbit();
 
@@ -139,7 +140,7 @@ protected:
 class NetAddrData: public NetAddr
 {
 public:
-  NetAddrData(): NetAddr(data_) { reset(); }
+  NetAddrData();
   NetAddrData(const NetAddrData &src): NetAddr(data_) { *this = src; }
   NetAddrData(const NetAddr &src): NetAddr(data_) { NetAddr::operator=(src); }
   NetAddrData(const sockaddr &src): NetAddr(data_) { NetAddr::operator=(src); }
