@@ -635,8 +635,7 @@ bool NetMask::ScanCIDR(const char *buf, size_t len, const NetAddr &addr, NetAddr
       return false;
   }
 
-  mask.sa().sa_family = addr.domain();
-  mask.setzero();
+  mask.setzero(addr.domain());
   mask.setmsbit(cidr);
 
   return true;
