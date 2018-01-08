@@ -829,15 +829,18 @@ std::list<SockAddrData> &SockFN::AddrList(std::list<SockAddrData> &lst, const ch
     break;
   }
 
-  try { for (struct addrinfo *ai = aires; (ai != nullptr); ai = ai->ai_next)
+  try { for (struct addrinfo *ai = aires; (ai != nullptr); ai = ai->ai_next) switch(ai->ai_family) {
+  case AF_INET:
+  case AF_INET6:
     lst.push_back((SockAddrData &) SockAddrData().operator=(*ai->ai_addr));
-  } catch(...) {
+  } } catch(...) {
     if (aires != nullptr)
       ::freeaddrinfo(aires);
     throw;
   }
   if (aires != nullptr)
     ::freeaddrinfo(aires);
+
   return lst;
 }
 
