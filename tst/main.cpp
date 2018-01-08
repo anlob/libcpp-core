@@ -46,6 +46,9 @@ int main()
 #if (_TEST_ALL == 1) || (_TEST_GRP_SOCK == 1) || (_TEST_SOCK_ADDRSTR == 1)
   test_sock_addrstr();
 #endif
+#if (_TEST_ALL == 1) || (_TEST_GRP_SOCK == 1) || (_TEST_SOCK_ADDRLST == 1)
+  test_sock_addrlst();
+#endif
 #if (_TEST_ALL == 1) || (_TEST_GRP_SOCK == 1) || (_TEST_SOCK_NETADDR == 1)
   test_sock_netaddr();
 #endif

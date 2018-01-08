@@ -817,10 +817,16 @@ std::list<SockAddrData> &SockFN::AddrList(std::list<SockAddrData> &lst, const ch
   hints.ai_socktype = SOCK_STREAM;
   errno = 0;
   int airt = ::getaddrinfo(straddr.c_str(), srvc, &hints, &aires);
-  if (airt != 0) {
+  switch (airt)
+  {
+  default:
     if (errno == 0)
       errno = ENOENT;
     logsxc << "getaddrinfo(addr = " << straddr << ", srvc = " << srvc <<") failed: " << gai_strerror(airt) << std::endl;
+  case EAI_NODATA:
+    aires = nullptr;
+  case 0:
+    break;
   }
 
   try { for (struct addrinfo *ai = aires; (ai != nullptr); ai = ai->ai_next)

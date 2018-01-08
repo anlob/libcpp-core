@@ -76,6 +76,31 @@ void test_sock_addrstr()
 }
 #endif
 
+#if (_TEST_ALL == 1) || (_TEST_GRP_SOCK == 1) || (_TEST_SOCK_ADDRLST == 1)
+void test_sock_addrlst()
+{
+  std::list<SockAddrData> alst;
+
+  alst.clear();
+  if (!SockFN::AddrList(alst, "foo.bar", "*").empty())
+    logexc << "SockFN::AddrList() failed to create empty list for \"foo.bar\"" << endl;
+  alst.clear();
+  if (SockFN::AddrList(alst, "localhost", "*").empty())
+    logexc << "SockFN::AddrList() failed to create list for \"localhost\"" << endl;
+  for (std::list<SockAddrData>::const_iterator it = alst.begin(); it != alst.end(); ++it) switch(it->domain())
+  {
+  case AF_INET:
+    if (NetAddrData(it->sa()) != NetAddrData("127.0.0.1"))
+      logexc << "SockFN::AddrList() failed to create proper IPV4 list entry for \"localhost\"" << endl;
+    break;
+  case AF_INET6:
+    if (NetAddrData(it->sa()) != NetAddrData("::1"))
+      logexc << "SockFN::AddrList() failed to create proper IPV6 list entry for \"localhost\"" << endl;
+    break;
+  }
+}
+#endif
+
 #if (_TEST_ALL == 1) || (_TEST_GRP_SOCK == 1) || (_TEST_SOCK_NETADDR == 1)
 void test_sock_netaddr()
 {
