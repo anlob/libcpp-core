@@ -74,6 +74,7 @@ SockAddr &SockAddr::operator=(const char *addr)
   }
   struct addrinfo *aires, hints;
   memset(&hints, 0, sizeof(hints));
+  hints.ai_flags = AI_ADDRCONFIG | AI_ALL;
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
   errno = 0;
@@ -176,6 +177,7 @@ NetAddr &NetAddr::operator=(const char *addr)
 
   struct addrinfo *aires, hints;
   memset(&hints, 0, sizeof(hints));
+  hints.ai_flags = AI_ADDRCONFIG | AI_ALL;
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
   errno = 0;
@@ -567,6 +569,7 @@ bool NetMask::match(const NetAddr &addr) const
 
     struct addrinfo *aires, hints;
     memset(&hints, 0, sizeof(hints));
+    hints.ai_flags = AI_ADDRCONFIG | AI_ALL;
     hints.ai_family = addr.domain();
     hints.ai_socktype = SOCK_STREAM;
     int airt = ::getaddrinfo(name_.c_str(), nullptr, &hints, &aires);
@@ -777,6 +780,61 @@ std::string SockFN::AddrStr(struct sockaddr *addr)
 }
 
 
+std::list<SockAddrData> &SockFN::AddrList(std::list<SockAddrData> &lst, const char *addr, const char *dfltsvc /* = nullptr */)
+{
+  const char *srvc;
+  if ((strchr(addr, '/') != nullptr) || (((srvc = strrchr(addr, ':')) == nullptr) && (dfltsvc == nullptr))) {
+    struct sockaddr_un saddr;
+    if (strlen(addr) >= sizeof(saddr.sun_path))
+      logexc << "failed to create SockAddr list item from \"" << addr << "\", pathname too long" << std::endl;
+    saddr.sun_family = AF_LOCAL;
+    strcpy(saddr.sun_path, addr);
+    lst.push_back((SockAddrData &) SockAddrData().operator=((struct sockaddr &) saddr));
+    return lst;
+  }
+
+  std::string straddr(addr, (srvc != nullptr) ? srvc : (const char *) (addr + strlen(addr)));
+  if (srvc != nullptr) {
+    ++srvc;
+    if ((straddr.size() != 0) && (straddr.front() == '[') && (straddr.back() == ']')) {
+      straddr.erase(straddr.begin());
+      straddr.pop_back();
+    } else if (strchr(straddr.c_str(), ':') != nullptr) {
+      if (dfltsvc != nullptr) {
+        straddr = addr;
+        srvc = dfltsvc;
+      } else {
+        logexc << "failed to create SockAddr list item from \"" << addr << "\", malformed address" << std::endl;
+      }
+    }
+  } else {
+    srvc = dfltsvc;
+  }
+  struct addrinfo *aires, hints;
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_flags = AI_ADDRCONFIG | AI_ALL;
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  errno = 0;
+  int airt = ::getaddrinfo(straddr.c_str(), srvc, &hints, &aires);
+  if (airt != 0) {
+    if (errno == 0)
+      errno = ENOENT;
+    logsxc << "getaddrinfo(addr = " << straddr << ", srvc = " << srvc <<") failed: " << gai_strerror(airt) << std::endl;
+  }
+
+  try { for (struct addrinfo *ai = aires; (ai != nullptr); ai = ai->ai_next)
+    lst.push_back((SockAddrData &) SockAddrData().operator=(*ai->ai_addr));
+  } catch(...) {
+    if (aires != nullptr)
+      ::freeaddrinfo(aires);
+    throw;
+  }
+  if (aires != nullptr)
+    ::freeaddrinfo(aires);
+  return lst;
+}
+
 FD SockFN::Connect(struct sockaddr *addr)
 {
   int domain = AddrDomain(addr);
@@ -829,6 +887,7 @@ FD SockFN::Connect(const char *addr, const char *dfltsvc /* = nullptr */)
   }
   struct addrinfo *aires, hints;
   memset(&hints, 0, sizeof(hints));
+  hints.ai_flags = AI_ADDRCONFIG | AI_ALL;
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
   errno = 0;
@@ -922,6 +981,7 @@ FD SockFN::Listen(const char *addr, const char *dfltsvc /* = nullptr */)
   }
   struct addrinfo *aires, hints;
   memset(&hints, 0, sizeof(hints));
+  hints.ai_flags = AI_ADDRCONFIG | AI_ALL;
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
   errno = 0;

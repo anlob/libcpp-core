@@ -19,6 +19,7 @@
 #include <sys/un.h>
 #include <arpa/inet.h>
 #include <memory>
+#include <list>
 #include "Log.h"
 #include "FD.h"
 #include "FDStream.h"
@@ -196,6 +197,7 @@ public:
   static unsigned AddrLen(struct sockaddr *addr);
   static int AddrDomain(struct sockaddr *addr);
   static std::string AddrStr(struct sockaddr *addr);
+  static std::list<SockAddrData> &AddrList(std::list<SockAddrData> &lst, const char *addr, const char *dfltsvc = nullptr);
   static FD Connect(struct sockaddr *addr);
   static FD Connect(const char *addr, const char *dfltsvc = nullptr);
   static FD Listen(struct sockaddr *addr);
