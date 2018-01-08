@@ -56,6 +56,11 @@ public:
   struct sockaddr_in &in() const { return data_.in; }
   struct sockaddr_in6 &in6() const { return data_.in6; }
 
+  bool operator==(const SockAddr &cmp) const;
+  bool operator!=(const SockAddr &cmp) const { return !operator==(cmp); }
+  bool operator==(const sockaddr &cmp) const { return operator==(SockAddr((UData &) cmp)); }
+  bool operator!=(const sockaddr &cmp) const { return operator!=(SockAddr((UData &) cmp)); }
+
 protected:
   std::string svc_; ///< default service
   UData &data_;

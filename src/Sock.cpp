@@ -144,6 +144,27 @@ SockAddr &SockAddr::port(unsigned port)
   return *this;
 }
 
+bool SockAddr::operator==(const SockAddr &cmp) const
+{
+  if (domain() == AF_UNSPEC)
+    logexc << "SockAddr::operator==() failed, this is not initialized" << std::endl;
+  if (domain() != cmp.domain())
+    logexc << "SockAddr::operator==() failed, comparator value of different address family" << std::endl;
+
+  switch(domain())
+  {
+  case AF_INET:
+    return ((in().sin_port == cmp.in().sin_port) && (in().sin_addr.s_addr == cmp.in().sin_addr.s_addr));
+  case AF_INET6:
+    return ((in6().sin6_port == cmp.in6().sin6_port) && (::memcmp(&in6().sin6_addr.s6_addr[0], &cmp.in6().sin6_addr.s6_addr[0], 16) == 0));
+  case AF_LOCAL:
+    return (::strncmp(un().sun_path, cmp.un().sun_path, sizeof(data_.un.sun_path)) == 0);
+  default:
+    logexc << "SockAddr::operator==() failed, unsupported address family" << std::endl;
+    return false;
+  }
+}
+
 
 NetAddr &NetAddr::operator=(const sockaddr &src)
 {
@@ -491,7 +512,7 @@ bool NetAddr::operator==(const NetAddr &cmp) const
   switch(domain())
   {
   case AF_INET:
-    return ntohl(in().sin_addr.s_addr) == ntohl(cmp.in().sin_addr.s_addr);
+    return in().sin_addr.s_addr == cmp.in().sin_addr.s_addr;
   case AF_INET6:
     return (::memcmp(&in6().sin6_addr.s6_addr[0], &cmp.in6().sin6_addr.s6_addr[0], 16) == 0);
   default:
