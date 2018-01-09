@@ -90,11 +90,11 @@ void test_sock_addrlst()
   for (std::list<SockAddrData>::const_iterator it = alst.begin(); it != alst.end(); ++it) switch(it->domain())
   {
   case AF_INET:
-    if (NetAddrData(it->sa()) != NetAddrData("127.0.0.1"))
+    if (*it != (SockAddrData().svc("*") = "127.0.0.1"))
       logexc << "SockFN::AddrList() failed to create proper IPV4 list entry for \"localhost\"" << endl;
     break;
   case AF_INET6:
-    if (NetAddrData(it->sa()) != NetAddrData("::1"))
+    if (*it != (SockAddrData().svc("*") = "::1"))
       logexc << "SockFN::AddrList() failed to create proper IPV6 list entry for \"localhost\"" << endl;
     break;
   }
