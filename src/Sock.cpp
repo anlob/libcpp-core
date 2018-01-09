@@ -146,13 +146,13 @@ SockAddr &SockAddr::port(unsigned port)
 
 bool SockAddr::operator==(const SockAddr &cmp) const
 {
-  if (domain() == AF_UNSPEC)
-    logexc << "SockAddr::operator==() failed, this is not initialized" << std::endl;
   if (domain() != cmp.domain())
-    logexc << "SockAddr::operator==() failed, comparator value of different address family" << std::endl;
+    return false;
 
   switch(domain())
   {
+  case AF_UNSPEC:
+    return true;
   case AF_INET:
     return ((in().sin_port == cmp.in().sin_port) && (in().sin_addr.s_addr == cmp.in().sin_addr.s_addr));
   case AF_INET6:
