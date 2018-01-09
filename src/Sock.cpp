@@ -27,10 +27,12 @@ SockAddr &SockAddr::operator=(const sockaddr &src)
   {
   case AF_INET:
     in().sin_family = AF_INET;
+    in().sin_port = ((const struct sockaddr_in &) src).sin_port;
     in().sin_addr.s_addr = ((const struct sockaddr_in &) src).sin_addr.s_addr;
     break;
   case AF_INET6:
     in6().sin6_family = AF_INET6;
+    in6().sin6_port = ((const struct sockaddr_in6 &) src).sin6_port;
     for (int i = 0; i < 16; ++i)
       in6().sin6_addr.s6_addr[i] = ((const struct sockaddr_in6 &) src).sin6_addr.s6_addr[i];
     break;
