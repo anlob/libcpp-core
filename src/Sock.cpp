@@ -91,7 +91,7 @@ SockAddr &SockAddr::operator=(const char *addr)
 
   for (struct addrinfo *ai = aires; ai != nullptr; ai = ai->ai_next) switch (ai->ai_family) { // AF_INET takes precedence
   case AF_INET:
-    *this = *aires->ai_addr;
+    *this = *ai->ai_addr;
     if (srvc == nullptr)
       in().sin_port = 0;
     ::freeaddrinfo(aires);
@@ -99,7 +99,7 @@ SockAddr &SockAddr::operator=(const char *addr)
   }
   for (struct addrinfo *ai = aires; ai != nullptr; ai = ai->ai_next) switch (ai->ai_family) {
   case AF_INET6:
-    *this = *aires->ai_addr;
+    *this = *ai->ai_addr;
     if (srvc == nullptr)
       in6().sin6_port = 0;
     ::freeaddrinfo(aires);
@@ -215,13 +215,13 @@ NetAddr &NetAddr::operator=(const char *addr)
 
   for (struct addrinfo *ai = aires; ai != nullptr; ai = ai->ai_next) switch (ai->ai_family) { // AF_INET takes precedence
   case AF_INET:
-    *this = *aires->ai_addr;
+    *this = *ai->ai_addr;
     ::freeaddrinfo(aires);
     return *this;
   }
   for (struct addrinfo *ai = aires; ai != nullptr; ai = ai->ai_next) switch (ai->ai_family) {
   case AF_INET6:
-    *this = *aires->ai_addr;
+    *this = *ai->ai_addr;
     ::freeaddrinfo(aires);
     return *this;
   }
