@@ -177,6 +177,8 @@ public:
   const NetAddrData &addr(int i) const { return addr_[i]; }
 
   bool match(const NetAddr &addr) const;
+  bool match(const sockaddr &addr) const { return match(NetAddr((NetAddr::UData &) addr)); }
+  bool match(const SockAddr &addr) const { return match(addr.sa()); }
 
 protected:
   std::string name_;
