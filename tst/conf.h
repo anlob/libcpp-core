@@ -8,6 +8,7 @@
 // group test enable macros
 #define _TEST_GRP_LOG   0
 #define _TEST_GRP_APP   0
+#define _TEST_GRP_JSON  0
 #define _TEST_GRP_SOCK  0
 #define _TEST_GRP_PIPE  0
 #define _TEST_GRP_PROC  0
@@ -24,6 +25,9 @@
 // enable particular app test
 #define _TEST_APP_HOMEDIR   0
 #define _TEST_APP_CONFDIR   0
+
+// enable particular json test
+#define _TEST_JSON_RAW      0
 
 // enable particular socket test
 #define _TEST_SOCK_IPV6CONN 0

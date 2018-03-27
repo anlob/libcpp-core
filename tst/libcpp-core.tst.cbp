@@ -40,6 +40,7 @@
 		</Compiler>
 		<Linker>
 			<Add option="-lssl" />
+			<Add option="-ljsoncpp" />
 			<Add library="libcpp-core" />
 		</Linker>
 		<Unit filename="app.cpp" />
@@ -47,6 +48,8 @@
 		<Unit filename="conf.h" />
 		<Unit filename="iomanip.cpp" />
 		<Unit filename="iomanip.h" />
+		<Unit filename="json.cpp" />
+		<Unit filename="json.h" />
 		<Unit filename="log.cpp" />
 		<Unit filename="log.h" />
 		<Unit filename="main.cpp" />
@@ -66,7 +69,10 @@
 			<code_completion />
 			<envvars />
 			<debugger />
-			<lib_finder disable_auto="1" />
+			<lib_finder disable_auto="1">
+				<lib name="libssl" />
+				<lib name="jsoncpp" />
+			</lib_finder>
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

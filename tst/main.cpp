@@ -1,6 +1,7 @@
 #include "conf.h"
 #include "log.h"
 #include "app.h"
+#include "json.h"
 #include "sock.h"
 #include "pipe.h"
 #include "process.h"
@@ -29,6 +30,10 @@ int main()
 #endif
 #if (_TEST_ALL == 1) || (_TEST_GRP_APP == 1) || (_TEST_APP_CONFDIR == 1)
   test_app_confdir();
+#endif
+
+#if (_TEST_ALL == 1) || (_TEST_GRP_JSON == 1) || (_TEST_JSON_RAW == 1)
+  test_json_raw();
 #endif
 
 #if (_TEST_ALL == 1) || (_TEST_GRP_SOCK == 1) || (_TEST_SOCK_IPV6CONN == 1)
