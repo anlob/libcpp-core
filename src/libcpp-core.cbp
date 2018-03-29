@@ -63,6 +63,9 @@
 			<Add option="-std=c++11" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<ExtraCommands>
+			<Add before="$(PROJECT_DIR)/../tools/mergeworktree.sh" />
+		</ExtraCommands>
 		<Unit filename="App.cpp" />
 		<Unit filename="App.h" />
 		<Unit filename="FD.cpp" />
