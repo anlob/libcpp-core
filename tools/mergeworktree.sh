@@ -51,7 +51,7 @@ while true ; do
 	fi
     fi
 
-    if [ ! -d .git ]; then
+    if [ ! -e .git ]; then
 	break;
     fi
 done
