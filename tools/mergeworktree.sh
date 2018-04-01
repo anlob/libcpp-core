@@ -1,6 +1,21 @@
 #!/bin/bash
 
 
+OPTIND=1
+chk=
+while getopts "hc" o; do
+    case "$o" in
+	h)  echo usage: mergeworktree.sh "[-c]"
+	    exit 0;
+	    ;;
+	c)  chk=1
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+[ "$1" = "--" ] && shift
+
+
 function relpath ()
 {
     IFS="${IFS= 	}"
@@ -35,7 +50,8 @@ function relpath ()
 
 
 pushd `dirname $0`/..
-this="`pwd`";
+this="`pwd`"
+hash=`git log --pretty=format:'%h' -n 1`
 root="$this"
 
 while true ; do
@@ -47,6 +63,14 @@ while true ; do
     if [ -d libcpp-core ]; then
 	node="`pwd`"/libcpp-core
 	if [ ! "$node" = "$this" ]; then
+	    if [ "$chk" = "1" ]; then
+		pushd "$node"
+		if [ ! "`git log --pretty=format:'%h' -n 1`" = "$hash" ]; then
+		    echo "node \"$node\" not in sync with this \"$this\"" 1>&2
+		    exit 1
+		fi
+		popd
+	    fi
 	    root="$node"
 	fi
     fi

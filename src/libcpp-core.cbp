@@ -22,6 +22,7 @@
 					<Add option="@$(TARGET_OBJECT_DIR)$(TARGET_OUTPUT_BASENAME).soname.ldopt" />
 				</Linker>
 				<ExtraCommands>
+					<Add before="$(PROJECT_DIR)/../tools/mergeworktree.sh" />
 					<Add before="mkdir -p $(TARGET_OBJECT_DIR)" />
 					<Add before="echo -Wl,-soname,$(TARGET_OUTPUT_BASENAME).so.$(TARGET_VERSION) &gt; $(TARGET_OBJECT_DIR)$(TARGET_OUTPUT_BASENAME).soname.ldopt" />
 					<Add after="mv -vf $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).so $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).so.$(TARGET_VERSION)" />
@@ -48,6 +49,7 @@
 					<Add option="@$(TARGET_OBJECT_DIR)$(TARGET_OUTPUT_BASENAME).soname.ldopt" />
 				</Linker>
 				<ExtraCommands>
+					<Add before="$(PROJECT_DIR)/../tools/mergeworktree.sh -c" />
 					<Add before="mkdir -p $(TARGET_OBJECT_DIR)" />
 					<Add before="echo -Wl,-soname,$(TARGET_OUTPUT_BASENAME).so.$(TARGET_VERSION) &gt; $(TARGET_OBJECT_DIR)$(TARGET_OUTPUT_BASENAME).soname.ldopt" />
 					<Add after="mv -vf $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).so $(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).so.$(TARGET_VERSION)" />
@@ -63,9 +65,6 @@
 			<Add option="-std=c++11" />
 			<Add option="-fexceptions" />
 		</Compiler>
-		<ExtraCommands>
-			<Add before="$(PROJECT_DIR)/../tools/mergeworktree.sh" />
-		</ExtraCommands>
 		<Unit filename="App.cpp" />
 		<Unit filename="App.h" />
 		<Unit filename="FD.cpp" />
