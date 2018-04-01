@@ -18,6 +18,9 @@
 					<Add option="-Wl,-rpath,$(PROJECT_DIR)../src/bin/Debug" />
 					<Add directory="../src/bin/Debug" />
 				</Linker>
+				<ExtraCommands>
+					<Add before="$(PROJECT_DIR)/../tools/mergeworktree.sh" />
+				</ExtraCommands>
 			</Target>
 			<Target title="Release">
 				<Option output="bin/Release/tst" prefix_auto="1" extension_auto="1" />
@@ -31,6 +34,9 @@
 					<Add option="-s" />
 					<Add directory="../src/bin/Release" />
 				</Linker>
+				<ExtraCommands>
+					<Add before="$(PROJECT_DIR)/../tools/mergeworktree.sh -c" />
+				</ExtraCommands>
 			</Target>
 		</Build>
 		<Compiler>
