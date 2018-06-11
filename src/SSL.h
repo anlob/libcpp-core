@@ -1,3 +1,11 @@
+/** \file SSL.h
+ * SSL stuff.
+ *
+ * \author Andreas Lobbes, andreas.lobbes@gmail.com
+ * \date 2016-2018
+ * \copyright GPLV3 and above + GCC RTL Exception 3.1
+ * \see http://www.gnu.org/licenses
+ */
 #ifndef SSL_H_INCLUDED
 #define SSL_H_INCLUDED
 
