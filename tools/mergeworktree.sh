@@ -87,6 +87,9 @@ if [ ! "$root" = "$this" ]; then
     if [ ! -e "$root"/src/obj ]; then
 	mkdir "$root"/src/obj
     fi
+    if [ ! -e "$root"/src/doxygen/html ]; then
+	mkdir "$root"/src/doxygen/html
+    fi
     cd "$this"/src
     if [ ! -h bin ]; then
 	echo linking bin to "$root"/src/bin
@@ -98,6 +101,13 @@ if [ ! "$root" = "$this" ]; then
 	echo linking obj to "$root"/src/obj
 	r=$(relpath "$root"/src/obj "$this"/src)
 	rm -rf obj
+	ln -s $r .
+    fi
+    cd "$this"/src/doxygen
+    if [ ! -h html ]; then
+	echo linking html to "$root"/src/doxygen/html
+	r=$(relpath "$root"/src/doxygen/html "$this"/src/doxygen)
+	rm -rf html
 	ln -s $r .
     fi
 fi
